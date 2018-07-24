@@ -1,10 +1,10 @@
 language: ruby
-sudo: false
+sudo: required
+
 cache:
   bundler: true
   directories:
     - sunspot/vendor/bundle
-    - sunspot_solr/vendor/bundle
     - sunspot_rails/vendor/bundle
 
 rvm:
@@ -19,16 +19,26 @@ rvm:
   # - jruby
 
 env:
-  - GEM=sunspot UPDATE_FORMAT=xml
-  - GEM=sunspot UPDATE_FORMAT=json
-  - GEM=sunspot_rails
-  - GEM=sunspot_solr
+  global:
+    - SOLR_VERSION=5.3.1
+  matrix:
+    - GEM=sunspot UPDATE_FORMAT=xml
+    - GEM=sunspot UPDATE_FORMAT=json
+    - GEM=sunspot_rails
+
+before_install:
+  # Setting up and running containerized Solr instance
+  - docker pull solr:$SOLR_VERSION
+  - docker run -d --name solr -p 8983:8983 -t -v $PWD/ci/solr:/opt/mysolrhome solr:$SOLR_VERSION
+  - docker ps -a
+  - docker exec -it --user=root solr /bin/sh -c "chown -R solr:solr /opt/mysolrhome"
+  - docker exec -it --user=solr solr bin/solr create_core -c default -d /opt/mysolrhome
+  # Install Ruby dependencies
+  - gem install bundler
 
 matrix:
   allow_failures:
     - rvm: ruby-head
-
-before_install: gem install bundler
 
 script:
   - ci/travis.sh

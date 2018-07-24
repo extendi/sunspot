@@ -8,7 +8,7 @@ namespace :schema do
         '..',
         'solr',
         'solr',
-        'conf',
+        'solr',
         'schema.xml'
     ),
       'w'
