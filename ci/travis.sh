@@ -2,8 +2,6 @@
 
 set +e
 
-SOLR_PORT=8983
-
 solr_responding() {
   curl -o /dev/null "http://localhost:$SOLR_PORT/solr/default/admin/ping" > /dev/null 2>&1
 }

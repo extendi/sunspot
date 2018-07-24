@@ -21,6 +21,7 @@ rvm:
 env:
   global:
     - SOLR_VERSION=6.6
+    - SOLR_PORT=8983
   matrix:
     - GEM=sunspot UPDATE_FORMAT=xml
     - GEM=sunspot UPDATE_FORMAT=json
@@ -29,7 +30,7 @@ env:
 before_install:
   # Setting up and running containerized Solr instance
   - docker pull solr:$SOLR_VERSION
-  - docker run -d --name solr -p 8983:8983 -t -v $PWD/ci/solr:/opt/mysolrhome solr:$SOLR_VERSION
+  - docker run -d --name solr -p 127.0.0.1:$SOLR_PORT:8983 -t -v $PWD/ci/solr:/opt/mysolrhome solr:$SOLR_VERSION
   - docker ps -a
   - docker exec -it --user=root solr /bin/sh -c "chown -R solr:solr /opt/mysolrhome"
   - docker exec -it --user=solr solr bin/solr create_core -c default -d /opt/mysolrhome
