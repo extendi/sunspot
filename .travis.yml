@@ -32,7 +32,7 @@ env:
 
 before_install:
   # Setting up and running containerized Solr instance
-  - chown -R $SOLR_PORT:$SOLR_PORT ci/solr
+  - sudo chown -R 8983:8983 ci/solr
   - docker pull solr:$SOLR_VERSION
   - docker run -d --name solr -p 127.0.0.1:$SOLR_PORT:8983 -t -v $PWD/ci/solr:/opt/mysolrhome solr:$SOLR_VERSION \
       bin/solr create_core -c default -d /opt/mysolrhome
