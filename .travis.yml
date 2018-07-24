@@ -20,7 +20,7 @@ rvm:
 
 env:
   global:
-    - SOLR_VERSION=5.3.1
+    - SOLR_VERSION=6.6
   matrix:
     - GEM=sunspot UPDATE_FORMAT=xml
     - GEM=sunspot UPDATE_FORMAT=json
