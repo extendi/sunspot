@@ -32,11 +32,11 @@ env:
 
 before_install:
   # Setting up and running containerized Solr instance
+  - chown -R $SOLR_PORT:$SOLR_PORT ci/solr
   - docker pull solr:$SOLR_VERSION
-  - docker run -d --name solr -p 127.0.0.1:$SOLR_PORT:8983 -t -v $PWD/ci/solr:/opt/mysolrhome solr:$SOLR_VERSION
+  - docker run -d --name solr -p 127.0.0.1:$SOLR_PORT:8983 -t -v $PWD/ci/solr:/opt/mysolrhome solr:$SOLR_VERSION \
+      bin/solr create_core -c default -d /opt/mysolrhome
   - docker ps -a
-  - docker exec -it --user=root solr /bin/sh -c "chown -R solr:solr /opt/mysolrhome"
-  - docker exec -it --user=solr solr bin/solr create_core -c default -d /opt/mysolrhome
   # Install Ruby dependencies
   - gem install bundler
 
