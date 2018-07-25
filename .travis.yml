@@ -24,6 +24,7 @@ rvm:
 env:
   global:
     - SOLR_VERSION=6.6
+    - SOLR_CORE=default
     - SOLR_PORT=8983
   matrix:
     - GEM=sunspot UPDATE_FORMAT=xml
@@ -34,10 +35,12 @@ before_install:
   # Setting up and running containerized Solr instance
   - sudo chown -R 8983:8983 ci/solr
   - docker pull solr:$SOLR_VERSION
-  - docker run -d --name solr -p 127.0.0.1:$SOLR_PORT:8983 -t -v $PWD/ci/solr:/opt/mysolrhome solr:$SOLR_VERSION \
-      bin/solr create_core -c default -d /opt/mysolrhome
+  - docker run -d --name solr -p $SOLR_PORT:8983 -t -v $PWD/ci/solr:/opt/mysolrhome solr:$SOLR_VERSION \
+      bin/solr create_core -c $SOLR_CORE -d /opt/mysolrhome
   - docker ps -a
   # Install Ruby dependencies
+  # Docker Solr issue: https://github.com/docker-solr/docker-solr/issues/100
+  - export SOLR_ADDRESS=`docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}} solr`
   - gem install bundler
 
 matrix:
