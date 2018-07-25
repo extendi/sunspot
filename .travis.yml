@@ -39,7 +39,8 @@ before_install:
       bin/solr create_core -c $SOLR_CORE -d /opt/mysolrhome
   - docker ps -a
   # Docker Solr issue: https://github.com/docker-solr/docker-solr/issues/100
-  - export SOLR_ADDRESS=`docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' solr`
+  - until [ "`docker inspect -f '{{.State.Running}}' solr`" == "true" ]; sleep 0.1; done
+  - export SOLR_ADDRESS=`docker inspect -f '{{.NetworkSettings.IPAddress}}' solr`
   - echo "Docker Solr ip address is $SOLR_ADDRESS"
   - export SOLR_URL="http://$SOLR_ADDRESS:$SOLR_PORT/solr/$SOLR_CORE"
   - echo "Using Solr URL $SOLR_URL"
