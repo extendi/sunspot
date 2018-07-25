@@ -48,5 +48,5 @@ matrix:
     - rvm: ruby-head
 
 script:
-  - ci/travis.sh
+  - SOLR_URL="http://$SOLR_ADDRESS:$SOLR_PORT/solr/$SOLR_CORE" ci/travis.sh
 

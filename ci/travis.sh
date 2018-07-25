@@ -3,7 +3,7 @@
 set +e
 
 solr_responding() {
-  curl -o /dev/null "http://localhost:$SOLR_PORT/solr/default/admin/ping" > /dev/null 2>&1
+  curl -o /dev/null "$SOLR_URL/admin/ping" > /dev/null 2>&1
 }
 
 # if [ !solr_responding ]; then
