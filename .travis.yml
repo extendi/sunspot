@@ -40,7 +40,7 @@ before_install:
   - docker ps -a
   # Install Ruby dependencies
   # Docker Solr issue: https://github.com/docker-solr/docker-solr/issues/100
-  - export SOLR_ADDRESS=`docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}} solr`
+  - export SOLR_ADDRESS=`docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' solr`
   - gem install bundler
 
 matrix:
