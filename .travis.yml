@@ -37,12 +37,10 @@ before_install:
   - docker pull solr:$SOLR_VERSION
   - docker run -d --name solr -p $SOLR_PORT:8983 -t -v $PWD/ci/solr:/opt/mysolrhome solr:$SOLR_VERSION bin/solr create_core -c $SOLR_CORE -d /opt/mysolrhome
   - docker ps -a
-  # Docker Solr issue: https://github.com/docker-solr/docker-solr/issues/100
+  - docker logs solr
+  # Waiting for Solr to be online
   - until [ "`docker inspect -f '{{.State.Running}}' solr`" = "true" ]; do sleep 0.5; done
-  #- export SOLR_ADDRESS=`docker inspect -f '{{.NetworkSettings.IPAddress}}' solr`
-  #- echo "Docker Solr ip address is $SOLR_ADDRESS"
-  #- export SOLR_URL="http://$SOLR_ADDRESS:$SOLR_PORT/solr/$SOLR_CORE"
-  #- echo "Using Solr URL $SOLR_URL"
+  - export SOLR_URL="http://127.0.0.1:$SOLR_PORT/solr/$SOLR_CORE"
   # Install Ruby dependencies
   - gem install bundler
 
