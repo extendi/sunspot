@@ -35,11 +35,10 @@ before_install:
   # Setting up and running containerized Solr instance
   - sudo chown -R 8983:8983 ci/solr
   - docker pull solr:$SOLR_VERSION
-  - docker run -d --name solr -p $SOLR_PORT:8983 -t -v $PWD/ci/solr:/opt/mysolrhome solr:$SOLR_VERSION \
-      bin/solr create_core -c $SOLR_CORE -d /opt/mysolrhome
+  - docker run -d --name solr -p $SOLR_PORT:8983 -t -v $PWD/ci/solr:/opt/mysolrhome solr:$SOLR_VERSION bin/solr create_core -c $SOLR_CORE -d /opt/mysolrhome
   - docker ps -a
   # Docker Solr issue: https://github.com/docker-solr/docker-solr/issues/100
-  - until [ "`docker inspect -f '{{.State.Running}}' solr`" = "true" ]; do docker logs solr; sleep 1; done
+  - until [ "`docker inspect -f '{{.State.Running}}' solr`" = "true" ]; do sleep 0.5; done
   - export SOLR_ADDRESS=`docker inspect -f '{{.NetworkSettings.IPAddress}}' solr`
   - echo "Docker Solr ip address is $SOLR_ADDRESS"
   - export SOLR_URL="http://$SOLR_ADDRESS:$SOLR_PORT/solr/$SOLR_CORE"
