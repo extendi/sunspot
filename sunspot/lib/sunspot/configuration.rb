@@ -12,10 +12,6 @@ module Sunspot
   #   This sets the batch size for indexing, default is 50
   #
   module Configuration
-    DEFAULT_ADDRESS = ENV['SOLR_ADDRESS'] || '127.0.0.1'
-    DEFAULT_PORT    = ENV['SOLR_PORT']    || '8983'
-    DEFAULT_CORE    = ENV['SOLR_CORE']    || 'default'
-
     class <<self
       # Factory method to build configuration instances.
       #
@@ -26,7 +22,7 @@ module Sunspot
       def build #:nodoc:
         LightConfig.build do
           solr do
-            url "http://#{Configuration::DEFAULT_ADDRESS}:#{Configuration::DEFAULT_PORT}/solr/#{Configuration::DEFAULT_CORE}"
+            url 'http://127.0.0.1:8983/solr/default'
             read_timeout nil
             open_timeout nil
             proxy nil
@@ -52,7 +48,7 @@ module Sunspot
       # String:: Directory with default solr config files
       #
       def solr_default_configuration_location
-        File.join( File.dirname(__FILE__), '../../solr/solr/solr' )
+        File.join( File.dirname(__FILE__), '../../solr/solr/conf' )
       end
     end
   end
