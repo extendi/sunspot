@@ -152,7 +152,7 @@ module Sunspot
           # to select which parents are used in the query.
           fq = filter_query.to_params[:fq]
           raise 'allParents filter must be non-empty!' if fq.nil?
-          fq[0] # Type filter used by Sunspot
+          Util.escape(fq[0]) # Type filter used by Sunspot
         end
 
         def secondary_filter
@@ -178,7 +178,7 @@ module Sunspot
 
         def all_parents_filter
           # Use top-level scope (on parent type) as allParents filter.
-          scope.to_params[:fq].flatten.join(' AND ')
+          scope.to_params[:fq].flatten.map { |v| Util.escape(v) }.join(' AND ')
         end
 
         def secondary_filter
