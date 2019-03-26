@@ -129,7 +129,7 @@ module Sunspot
         # String:: the BlockJoin query string to be added to the +:q+ filter.
         #
         def render_query_string(query_type, all_parents_key)
-          all_parents = all_parents_filter
+          all_parents = all_parents_filter(escape: true)
           filter      = secondary_filter
 
           query_string = "{!#{query_type} #{all_parents_key}=\"#{all_parents}\""
@@ -147,12 +147,12 @@ module Sunspot
       class ChildOf < Abstract
         alias some_parents_filter secondary_filter
 
-        def all_parents_filter
+        def all_parents_filter(escape: false)
           # The scope of the initial query should give the 'allParents' filter,
           # to select which parents are used in the query.
           fq = filter_query.to_params[:fq]
           raise 'allParents filter must be non-empty!' if fq.nil?
-          Util.escape(fq[0]) # Type filter used by Sunspot
+          escape ? Util.escape(fq[0]) : fq[0] # Type filter used by Sunspot
         end
 
         def secondary_filter
@@ -176,9 +176,11 @@ module Sunspot
       class ParentWhich < Abstract
         alias some_children_filter secondary_filter
 
-        def all_parents_filter
+        def all_parents_filter(escape: false)
           # Use top-level scope (on parent type) as allParents filter.
-          scope.to_params[:fq].flatten.map { |v| Util.escape(v) }.join(' AND ')
+          parts = scope.to_params[:fq].flatten
+          parts = parts.map { |v| Util.escape(v) } if escape
+          parts.join(' AND ')
         end
 
         def secondary_filter
