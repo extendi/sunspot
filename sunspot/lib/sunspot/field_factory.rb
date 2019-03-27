@@ -1,5 +1,5 @@
 module Sunspot
-  # 
+  #
   # The FieldFactory module contains classes for generating fields. FieldFactory
   # implementation classes should implement a #build method, although the arity
   # of the method depends on the type of factory. They also must implement a
@@ -41,7 +41,7 @@ module Sunspot
       end
     end
 
-    # 
+    #
     # A StaticFieldFactory generates normal static fields. Each factory instance
     # contains an eager-initialized field instance, which is returned by the
     # #build method.
@@ -60,14 +60,14 @@ module Sunspot
           end
       end
 
-      # 
+      #
       # Return the field instance built by this factory
       #
       def build
         @field
       end
 
-      # 
+      #
       # Extract the encapsulated field's data from the given model and add it
       # into the Solr document for indexing.
       #
@@ -90,7 +90,7 @@ module Sunspot
         end
       end
 
-      # 
+      #
       # A unique signature identifying this field by name and type.
       #
       def signature
@@ -107,7 +107,7 @@ module Sunspot
         @field = JoinField.new(self.name, type, options)
       end
 
-      # 
+      #
       # Return the field instance built by this factory
       #
       def build
@@ -122,7 +122,7 @@ module Sunspot
       end
     end
 
-    # 
+    #
     # DynamicFieldFactories create dynamic field instances based on dynamic
     # configuration.
     #
@@ -141,13 +141,13 @@ module Sunspot
       def build(dynamic_name)
         AttributeField.new([@name, dynamic_name].join(separator), @type, @options.dup)
       end
-      # 
+      #
       # This alias allows a DynamicFieldFactory to be used in place of a Setup
       # or CompositeSetup instance by query components.
       #
       alias_method :field, :build
 
-      # 
+      #
       # Generate dynamic fields based on hash returned by data accessor and
       # add the field data to the document.
       #
@@ -167,7 +167,7 @@ module Sunspot
         end
       end
 
-      # 
+      #
       # Unique signature identifying this dynamic field based on name and type
       #
       def signature
@@ -193,7 +193,7 @@ module Sunspot
         # TODO(ar3s3ru): how to handle incorrect field values?
         values  = @extractor.value_for(model)
         adapter = options[:adapter]
-        unless values.is_a? Array
+        unless values.is_a?(Array) || values.is_a?(ActiveRecord::Associations::CollectionProxy)
           raise 'Child documents field must be an Array of indexable documents'
         end
         if adapter.nil? || !adapter.respond_to?(:call)
