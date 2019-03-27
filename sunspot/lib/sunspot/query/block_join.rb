@@ -129,7 +129,7 @@ module Sunspot
         # String:: the BlockJoin query string to be added to the +:q+ filter.
         #
         def render_query_string(query_type, all_parents_key)
-          all_parents = all_parents_filter(escape: true)
+          all_parents = all_parents_filter
           filter      = secondary_filter
 
           query_string = "{!#{query_type} #{all_parents_key}=\"#{all_parents}\""
@@ -147,16 +147,16 @@ module Sunspot
       class ChildOf < Abstract
         alias some_parents_filter secondary_filter
 
-        def all_parents_filter(escape: false)
+        def all_parents_filter
           # The scope of the initial query should give the 'allParents' filter,
           # to select which parents are used in the query.
           fq = filter_query.to_params[:fq]
           raise 'allParents filter must be non-empty!' if fq.nil?
-          escape ? Util.escape(fq[0]) : fq[0] # Type filter used by Sunspot
+          Util.escape(fq[0]) # Type filter used by Sunspot
         end
 
-        def type_filter
-          all_parents_filter
+        def facet_type_filter
+          filter_query.to_params[:fq][0]
         end
 
         def secondary_filter
@@ -183,16 +183,15 @@ module Sunspot
         def all_parents_parts(escape: false)
           # Use top-level scope (on parent type) as allParents filter.
           parts = scope.to_params[:fq].flatten
-          parts = parts.map { |v| Util.escape(v) } if escape
-          parts
+          parts.map(&Util.escape)
         end
 
         def all_parents_filter(*args)
           all_parents_parts(*args).join(' AND ')
         end
 
-        def type_filter
-          all_parents_parts.find { |part| part.starts_with?('type:') }
+        def facet_type_filter
+          scope.to_params[:fq].flatten[0]
         end
 
         def secondary_filter
