@@ -5,7 +5,7 @@ module Sunspot
   #
   class Setup #:nodoc:
     attr_reader :class_object_id,
-                :child_field_factory
+                :child_field_factories
 
     attr_accessor :is_child
 
@@ -19,6 +19,7 @@ module Sunspot
       @more_like_this_field_factories_cache = Hash.new { |h, k| h[k] = [] }
       @dsl = DSL::Fields.new(self)
       @document_boost_extractor = nil
+      @child_field_factories = []
       add_field_factory(:class, Type::ClassType.instance)
     end
 
@@ -98,7 +99,7 @@ module Sunspot
     # field<Symbol>:: The document field that contains the child documents.
     #
     def add_child_field_factory(field)
-      @child_field_factory = FieldFactory::Child.new(field)
+      @child_field_factories << FieldFactory::Child.new(field)
     end
 
     #
