@@ -193,7 +193,7 @@ module Sunspot
         # TODO(ar3s3ru): how to handle incorrect field values?
         values  = @extractor.value_for(model)
         adapter = options[:adapter]
-        unless values.is_a?(Array) || values.is_a?(ActiveRecord::Associations::CollectionProxy)
+        unless values.is_a?(Array) || rails_association?(values)
           raise 'Child documents field must be an Array of indexable documents'
         end
         if adapter.nil? || !adapter.respond_to?(:call)
@@ -205,6 +205,13 @@ module Sunspot
 
       def signature
         [field, ::RSolr::Document::CHILD_DOCUMENT_KEY]
+      end
+
+      private
+
+      def rails_association?(values)
+        return false unless defined?(ActiveRecord::Associations::CollectionProxy)
+        values.is_a?(ActiveRecord::Associations::CollectionProxy)
       end
     end
   end

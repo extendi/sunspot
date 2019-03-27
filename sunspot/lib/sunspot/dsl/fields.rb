@@ -73,8 +73,12 @@ module Sunspot
       #
       # field<Symbol>:: Field name at object level that contains child documents
       #
-      def child_documents(field)
+      def child_documents(field, type:)
         Sunspot::Util.ensure_child_documents_support
+        setup = Sunspot::Setup.for(type)
+        unless setup.is_child
+          raise 'Child documents must be flagged as is_child'
+        end
         @setup.add_child_field_factory(field)
       end
 
