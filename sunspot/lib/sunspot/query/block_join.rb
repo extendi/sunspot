@@ -155,6 +155,10 @@ module Sunspot
           escape ? Util.escape(fq[0]) : fq[0] # Type filter used by Sunspot
         end
 
+        def type_filter
+          all_parents_filter
+        end
+
         def secondary_filter
           fq = filter_query.to_params[:fq]
           q  = super
@@ -176,11 +180,19 @@ module Sunspot
       class ParentWhich < Abstract
         alias some_children_filter secondary_filter
 
-        def all_parents_filter(escape: false)
+        def all_parents_parts(escape: false)
           # Use top-level scope (on parent type) as allParents filter.
           parts = scope.to_params[:fq].flatten
           parts = parts.map { |v| Util.escape(v) } if escape
-          parts.join(' AND ')
+          parts
+        end
+
+        def all_parents_filter(*args)
+          all_parents_parts(*args).join(' AND ')
+        end
+
+        def type_filter
+          all_parents_parts.find { |part| part.starts_with?('type:') }
         end
 
         def secondary_filter
