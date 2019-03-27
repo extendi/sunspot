@@ -1,7 +1,7 @@
 require 'sunspot/batcher'
 
 module Sunspot
-  # 
+  #
   # This class presents a service for adding, updating, and removing data
   # from the Solr index. An Indexer instance is associated with a particular
   # setup, and thus is capable of indexing instances of a certain class (and its
@@ -12,7 +12,7 @@ module Sunspot
       @connection = connection
     end
 
-    # 
+    #
     # Construct a representation of the model for indexing and send it to the
     # connection for indexing
     #
@@ -100,9 +100,13 @@ module Sunspot
     #
     # Convert documents into hash of indexed properties
     #
-    def prepare_full_update(model)
+    def prepare_full_update(model, indexing_parent: false)
       document = document_for_full_update(model)
       setup = setup_for_object(model)
+      if setup.is_child && !indexing_parent
+        raise 'Child documents must be indexed with their parent'
+      end
+
       if boost = setup.document_boost_for(model)
         document.attrs[:boost] = boost
       end
@@ -113,7 +117,7 @@ module Sunspot
         setup.child_field_factory.populate_document(
           document,
           model,
-          adapter: ->(child_model) { prepare_full_update(child_model) }
+          adapter: ->(child_model) { prepare_full_update(child_model, indexing_parent: true) }
         )
       end
       document
