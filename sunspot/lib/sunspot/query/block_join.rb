@@ -183,7 +183,7 @@ module Sunspot
         def all_parents_parts(escape: false)
           # Use top-level scope (on parent type) as allParents filter.
           parts = scope.to_params[:fq].flatten
-          parts.map(&Util.escape)
+          parts.map { |v| Util.escape(v) }
         end
 
         def all_parents_filter(*args)
