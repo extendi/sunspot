@@ -22,6 +22,12 @@ module Sunspot
         @query.add_field_list(Sunspot::Query::FieldList.new([:id]))
       end
 
+      def with_child_documents
+        type_filter = Util.escape(@query.to_params[:fq][0])
+        list = ["[child parentFilter=#{type_filter}]"]
+        @query.add_field_list(Sunspot::Query::FieldList.new([:*] + list)
+      end
+
       #
       # Build a positive restriction. This method can take three forms: equality
       # restriction, restriction by another restriction, or identity

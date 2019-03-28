@@ -180,7 +180,7 @@ module Sunspot
       class ParentWhich < Abstract
         alias some_children_filter secondary_filter
 
-        def all_parents_parts(escape: false)
+        def all_parents_parts
           # Use top-level scope (on parent type) as allParents filter.
           parts = scope.to_params[:fq].flatten
           parts.map { |v| Util.escape(v) }
