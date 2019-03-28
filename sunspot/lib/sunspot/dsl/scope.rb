@@ -25,7 +25,7 @@ module Sunspot
       def with_child_documents
         type_filter = Util.escape(@query.to_params[:fq][0])
         list = ["[child parentFilter=#{type_filter}]"]
-        @query.add_field_list(Sunspot::Query::FieldList.new([:*] + list)
+        @query.add_field_list(Sunspot::Query::FieldList.new([:*] + list))
       end
 
       #
