@@ -24,8 +24,6 @@ module Sunspot
       attr_reader :score
       #
 
-      attr_reader :child_documents
-
       attr_writer :result #:nodoc:
 
       def initialize(raw_hit, highlights, search) #:nodoc:
@@ -111,6 +109,11 @@ module Sunspot
       #
       def to_param
         self.primary_key
+      end
+
+      def children(type = nil)
+        return @child_documents if type.nil?
+        @child_documents.select { |d| d.class_name == type.name }
       end
 
       private
