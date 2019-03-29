@@ -100,13 +100,8 @@ module Sunspot
     #
     # Convert documents into hash of indexed properties
     #
-    def prepare_full_update(model, indexing_parent: false)
+    def prepare_full_update(model)
       document = document_for_full_update(model)
-      setup = setup_for_object(model)
-      if setup.is_child && !indexing_parent
-        raise 'Child documents must be indexed with their parent'
-      end
-
       if boost = setup.document_boost_for(model)
         document.attrs[:boost] = boost
       end
@@ -117,7 +112,7 @@ module Sunspot
         child_field_factory.populate_document(
           document,
           model,
-          adapter: ->(child_model) { prepare_full_update(child_model, indexing_parent: true) }
+          adapter: ->(child_model) { prepare_full_update(child_model) }
         )
       end
       document
