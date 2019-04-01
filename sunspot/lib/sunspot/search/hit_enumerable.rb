@@ -27,7 +27,7 @@ module Sunspot
         id_hit_hash = Hash.new { |h, k| h[k] = {} }
         hits.each do |hit|
           id_hit_hash[hit.class_name][hit.primary_key] = hit
-          hit.child_documents.each do |child_hit|
+          hit.children.each do |child_hit|
             id_hit_hash[child_hit.class_name][child_hit.primary_key] = child_hit
           end
         end
