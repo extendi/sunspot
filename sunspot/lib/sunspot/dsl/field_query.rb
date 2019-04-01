@@ -52,6 +52,12 @@ module Sunspot
         )
       end
 
+      def order_by_child_document(field_name, direction = nil, block_join:)
+        @query.add_sort(
+          Sunspot::Query::Sort::ChildDocumentSort.new(field_name, block_join, direction)
+        )
+      end
+
       #
       # DEPRECATED Use <code>order_by(:random)</code>
       #

@@ -102,6 +102,7 @@ module Sunspot
     #
     def prepare_full_update(model)
       document = document_for_full_update(model)
+      setup = setup_for_object(model)
       if boost = setup.document_boost_for(model)
         document.attrs[:boost] = boost
       end
