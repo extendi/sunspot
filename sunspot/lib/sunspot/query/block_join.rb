@@ -203,8 +203,19 @@ module Sunspot
           q
         end
 
+        def field_list_string
+          parts = []
+          parts << '[child'
+          parts << 'parentFilter="' + all_parents_parts[0] + '"'
+          parts << 'childFilter="' + secondary_filter.map { |f| Util.escape(f) }.join(' AND ') + '"]'
+          parts.join(' ')
+        end
+
         def to_params
-          { q: render_query_string('parent', 'which') }
+          {
+            q: render_query_string('parent', 'which'),
+            fl: [:id] + [field_list_string]
+          }
         end
       end
     end
