@@ -109,8 +109,8 @@ module Sunspot
       setup.all_field_factories.each do |field_factory|
         field_factory.populate_document(document, model)
       end
-      setup.child_field_factories.each do |child_field_factory|
-        child_field_factory.populate_document(
+      unless setup.child_field_factory.nil?
+        setup.child_field_factory.populate_document(
           document,
           model,
           adapter: ->(child_model) { prepare_full_update(child_model) }
@@ -124,7 +124,7 @@ module Sunspot
       setup = setup_for_class(clazz)
       # Child documents must be re-indexed with parent at each update,
       # otherwise Solr would discard them.
-      unless setup.child_field_factories.empty?
+      unless setup.child_field_factory.nil?
         raise 'Objects with child documents can\'t perform atomic updates'
       end
       setup.all_field_factories.each do |field_factory|
