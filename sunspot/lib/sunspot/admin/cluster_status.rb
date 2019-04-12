@@ -1,5 +1,5 @@
 module Sunspot
-  module ADMIN
+  module Admin
     #
     # Cluster Maintenance
     #
