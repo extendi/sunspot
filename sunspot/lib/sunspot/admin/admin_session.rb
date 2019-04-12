@@ -219,21 +219,16 @@ module Sunspot
       end
 
       def simple_cache(key, force, expires_in)
-        @initialized_at ||= 0
-        if force || (Time.now - @initialized_at) > expires_in
-          @initialized_at = Time.now
-          @cached.delete(key)
-        end
-        @cached      ||= {}
-        @cached[key] ||= yield
-        @cached[key]
+        @simple_cache ||= MiniCache::Store.new
+        @simple_cache.unset(key) if force
+        @simple_cache.get_or_set(key, expires_in: expires_in) { yield }
       end
 
       def remove_key_from_cache(key)
         if defined?(::Rails.cache)
           ::Rails.cache.delete(key)
         else
-          @cached.delete(key)
+          @simple_cache.unset(key)
         end
       end
 
