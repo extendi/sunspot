@@ -57,7 +57,7 @@ module Sunspot
         c.solr.read_timeout = @config.read_timeout
         c.solr.open_timeout = @config.open_timeout
         c.solr.proxy = @config.proxy
-        Session.new(c)
+        Sunspot::Session.new(c)
       end
 
       def connection
