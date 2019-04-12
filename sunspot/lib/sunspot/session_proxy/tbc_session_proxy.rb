@@ -50,7 +50,7 @@ module Sunspot
         @date_to = date_to
         @faulty_hosts = {}
         @host_index = 0
-        @solr = Admin::AdminSession.new(config: config)
+        @solr = Admin::Session.new(config: config)
         @fn_collection_filter = fn_collection_filter
       end
 

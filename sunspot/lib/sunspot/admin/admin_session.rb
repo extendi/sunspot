@@ -11,10 +11,10 @@ require_relative 'collection_status'
 module Sunspot
   module Admin
     #
-    # AdminSession connect direclty to the admin Solr endpoint
+    # Admin::Session connect direclty to the admin Solr endpoint
     # to handle admin stuff like collections listing, creation, etc...
     #
-    class AdminSession < Sunspot::Session
+    class Session < Sunspot::Session
       include Sunspot::Admin::Cluster
       include Sunspot::Admin::Collection
 
