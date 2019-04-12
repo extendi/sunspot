@@ -243,10 +243,6 @@ module Sunspot
           params: { action: action, wt: 'json' }.merge(extra_params)
         )
       end
-
-      def calc_key_collection_stats(collection_name)
-        "CACHE_SOLR_COLLECTION_STATS_#{collection_name}"
-      end
     end
   end
 end
