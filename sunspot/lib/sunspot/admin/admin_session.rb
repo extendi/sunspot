@@ -36,7 +36,6 @@ module Sunspot
       }.freeze
 
       def initialize(config:, refresh_every: 600)
-        @initialized_at = Time.now
         @refresh_every = refresh_every
         @config = config
         @replicas_not_active = []
@@ -220,9 +219,10 @@ module Sunspot
       end
 
       def simple_cache(key, force, expires_in)
+        @initialized_at ||= 0
         if force || (Time.now - @initialized_at) > expires_in
           @initialized_at = Time.now
-          @cached = {}
+          @cached.delete(key)
         end
         @cached      ||= {}
         @cached[key] ||= yield
