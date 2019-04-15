@@ -14,7 +14,7 @@ module Sunspot
       #
       def clusterstatus(as_json: false)
         # don't cache it
-        status = solr_request('CLUSTERSTATUS')
+        status = Utils.solr_request(connection, 'CLUSTERSTATUS')
         if as_json
           status.to_json
         else
@@ -151,7 +151,8 @@ module Sunspot
 
       # Helper function for SOLR recovery
       def delete_failed_replica(collection:, shard:, replica:)
-        solr_request(
+        Utils.solr_request(
+          connection,
           'DELETEREPLICA',
           extra_params: {
             'collection' => collection,
@@ -164,7 +165,8 @@ module Sunspot
       end
 
       def add_failed_replica(collection:, shard:, node:)
-        solr_request(
+        Utils.solr_request(
+          connection,
           'ADDREPLICA',
           extra_params: {
             'collection' => collection,

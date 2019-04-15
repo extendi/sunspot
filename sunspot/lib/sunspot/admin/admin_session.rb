@@ -5,6 +5,7 @@ require 'terminal-table'
 require 'pstore'
 require 'json'
 
+require_relative 'utils'
 require_relative 'cluster_status'
 require_relative 'collection_status'
 
@@ -75,8 +76,8 @@ module Sunspot
       # Return all collections. Refreshing every @refresh_every (10.min)
       # Array:: collections
       def collections(force: false)
-        cs = with_cache(force: force, key: 'CACHE_SOLR_COLLECTIONS', default: []) do
-          resp = solr_request('LIST')
+        cs = Utils.with_cache(force: force, key: 'CACHE_SOLR_COLLECTIONS', default: []) do
+          resp = Utils.solr_request(connection, 'LIST')
           return [] if resp.nil?
 
           r = resp['collections']
@@ -90,8 +91,8 @@ module Sunspot
       # Return all live nodes.
       # Array:: live_nodes
       def live_nodes(force: false)
-        lnodes = with_cache(force: force, key: 'CACHE_SOLR_LIVE_NODES', default: []) do
-          resp = solr_request('CLUSTERSTATUS')
+        lnodes = Utils.with_cache(force: force, key: 'CACHE_SOLR_LIVE_NODES', default: []) do
+          resp = Utils.solr_request(connection, 'CLUSTERSTATUS')
           r = resp['cluster']
           return [] if r.nil?
 
@@ -184,59 +185,6 @@ module Sunspot
         else
           resp
         end
-      end
-
-      # Helper function for solr caching
-      def with_cache(force: false, key:, retries: 0, max_retries: 3, default: nil, expires_in: @refresh_every)
-        return default if retries >= max_retries
-
-        r =
-          if defined?(::Rails.cache)
-            rails_cache(key, force, expires_in) do
-              yield
-            end
-          else
-            simple_cache(key, force, expires_in) do
-              yield
-            end
-          end
-
-        if r.nil?
-          with_cache(
-            force: true,
-            key: key,
-            retries: retries + 1,
-            max_retries: max_retries,
-            default: default
-          ) { yield }
-        else
-          r
-        end
-      end
-
-      def rails_cache(key, force, expires_in)
-        ::Rails.cache.fetch(key, expires_in: expires_in, force: force) { yield }
-      end
-
-      def simple_cache(key, force, expires_in)
-        @simple_cache ||= MiniCache::Store.new
-        @simple_cache.unset(key) if force
-        @simple_cache.get_or_set(key, expires_in: expires_in) { yield }
-      end
-
-      def remove_key_from_cache(key)
-        if defined?(::Rails.cache)
-          ::Rails.cache.delete(key)
-        else
-          @simple_cache.unset(key)
-        end
-      end
-
-      def solr_request(action, extra_params: {})
-        connection.get(
-          :collections,
-          params: { action: action, wt: 'json' }.merge(extra_params)
-        )
       end
     end
   end
