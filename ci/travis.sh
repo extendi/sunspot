@@ -61,10 +61,10 @@ stop_solr_server() {
 
 start_solrcloud_server() {
   docker-compose down
-  sleep 1
+  sleep 3
 
   docker-compose up -d
-  sleep 10
+  sleep 15
 
   sleep 1
   while ! solr_cloud_responding; do
@@ -76,10 +76,10 @@ start_solrcloud_server() {
   current_path=`pwd`
   cd ../sunspot_solr
 
-  sleep 15
+  sleep 20
   docker-compose exec solr1 /usr/bin/solr_init.sh
 
-  sleep 15
+  sleep 20
   /bin/echo "done."
   cd $current_path
 }
