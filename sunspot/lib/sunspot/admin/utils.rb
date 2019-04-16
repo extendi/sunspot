@@ -2,7 +2,7 @@ module Sunspot
   module Admin
     class Utils
       # Helper function for solr caching
-      def self.with_cache(force: false, key:, retries: 0, max_retries: 3, default: nil, expires_in: @refresh_every)
+      def self.with_cache(force: false, key:, retries: 0, max_retries: 3, default: nil, expires_in:)
         return default if retries >= max_retries
 
         r =
@@ -18,7 +18,8 @@ module Sunspot
             key: key,
             retries: retries + 1,
             max_retries: max_retries,
-            default: default
+            default: default,
+            expires_in: expires_in
           ) { yield }
         else
           r

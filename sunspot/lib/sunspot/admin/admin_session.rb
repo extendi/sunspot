@@ -36,8 +36,8 @@ module Sunspot
         snitch: 'snitch'
       }.freeze
 
-      def initialize(config:, refresh_every: 600)
-        @refresh_every = refresh_every
+      def initialize(config:, expires_in: 600)
+        @expires_in = expires_in
         @config = config
         @replicas_not_active = []
       end
@@ -73,10 +73,10 @@ module Sunspot
       end
 
       #
-      # Return all collections. Refreshing every @refresh_every (10.min)
+      # Return all collections. Refreshing every @expires_in (10.min)
       # Array:: collections
       def collections(force: false)
-        cs = Utils.with_cache(force: force, key: 'CACHE_SOLR_COLLECTIONS', default: []) do
+        cs = Utils.with_cache(force: force, key: 'CACHE_SOLR_COLLECTIONS', default: [], expires_in: @expires_in) do
           resp = Utils.solr_request(connection, 'LIST')
           return [] if resp.nil?
 
@@ -91,7 +91,7 @@ module Sunspot
       # Return all live nodes.
       # Array:: live_nodes
       def live_nodes(force: false)
-        lnodes = Utils.with_cache(force: force, key: 'CACHE_SOLR_LIVE_NODES', default: []) do
+        lnodes = Utils.with_cache(force: force, key: 'CACHE_SOLR_LIVE_NODES', default: [], expires_in: @expires_in) do
           resp = Utils.solr_request(connection, 'CLUSTERSTATUS')
           r = resp['cluster']
           return [] if r.nil?

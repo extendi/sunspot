@@ -91,7 +91,7 @@ module Sunspot
       # @return [Hash] stats info
       #
       def retrieve_stats_for(collection_name:)
-        Utils.with_cache(force: false, key: calc_key_collection_stats(collection_name), default: {}) do
+        Utils.with_cache(force: false, key: calc_key_collection_stats(collection_name), default: {}, expires_in: 300) do
           uri = connection.uri
           c = RSolr.connect(url: "http://#{uri.host}:#{uri.port}/solr/#{collection_name}")
           begin
