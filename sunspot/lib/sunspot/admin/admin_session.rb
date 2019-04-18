@@ -160,13 +160,13 @@ module Sunspot
       # Return { status:, time: sec}.
       # https://lucene.apache.org/solr/guide/6_6/collections-api.html
       #
-      def reload_collection(collection_name:)
+      def reload_collection(collection_name:, refresh_list: true)
         params = {}
         params[:action] = 'RELOAD'
         params[:name] = collection_name
         begin
           response = connection.get :collections, params: params
-          collections(force: true)
+          collections(force: true) if refresh_list
           return { status: 200, time: response['responseHeader']['QTime'] }
         rescue RSolr::Error::Http => e
           status = e.try(:response).try(:[], :status)

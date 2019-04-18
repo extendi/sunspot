@@ -79,7 +79,7 @@ module Sunspot
             c = e[:collection_name]
             puts "Optimizing #{c}"
             optimize_collection(collection_name: c)
-            reload_collection(collection_name: c) if reload
+            reload_collection(collection_name: c, refresh_list: false) if reload
           end
       end
 
