@@ -25,7 +25,8 @@ module Sunspot
       ##
       # Generate a report of the current collection/shards status
       # as: type of rapresentation
-      #  - :table
+      #  - :native
+      #  - :table (*default)
       #  - :json
       #  - :simple
       # using_persisted: if true doesn't make a request to SOLR
@@ -69,6 +70,13 @@ module Sunspot
             end
           )
           puts table
+        when :native
+          status = rows.each_with_object({}) do |row, acc|
+            name = row[:collection]
+            row.delete(:collection)
+            acc[name] = row
+          end
+          status
         when :json
           status = rows.each_with_object({}) do |row, acc|
             name = row[:collection]

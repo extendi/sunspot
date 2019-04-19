@@ -9,15 +9,20 @@ module Sunspot
       #
       # Retrieve stats for all collections
       #
-      # @param [Symbol] :as <:json, :table>
+      # @param [Symbol] :as
+      #                 - : native
+      #                 - :json
+      #                 - :table
       #
       # Example: retrieve_stats(as: :table)
       #
-      def retrieve_stats(as: :json)
+      def retrieve_stats(as: :table)
         stats = retrieve_stats_as_json
         case as
-        when :json
+        when :native
           stats
+        when :json
+          stats.to_json
         when :table
           s_stats = stats.sort do |a, b|
             b[:deleted_perc] <=> a[:deleted_perc]
@@ -51,7 +56,7 @@ module Sunspot
         c = RSolr.connect(url: "http://#{uri.host}:#{uri.port}/solr/#{collection_name}")
         begin
           response = c.get 'update', params: {
-            _: (Time.now.to_f * 1000).to_i,
+            _: (Time.now.to_f * 1_000).to_i,
             commit: true,
             optimize: true
           }
@@ -96,7 +101,7 @@ module Sunspot
           c = RSolr.connect(url: "http://#{uri.host}:#{uri.port}/solr/#{collection_name}")
           begin
             response = c.get 'admin/luke', params: {
-              _: (Time.now.to_f * 1000).to_i,
+              _: (Time.now.to_f * 1_000).to_i,
               numTerms: 0,
               show: 'index'
             }
