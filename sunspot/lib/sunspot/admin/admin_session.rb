@@ -76,7 +76,8 @@ module Sunspot
       # Return all collections. Refreshing every @expires_in (10.min)
       # Array:: collections
       def collections(force: false)
-        cs = Utils.with_cache(force: force, key: 'CACHE_SOLR_COLLECTIONS', default: [], expires_in: @expires_in) do
+        key_by_hostname = "#{Digest::MD5.hexdigest(@config.hostname)[0..9]}_CACHE_SOLR_COLLECTIONS"
+        cs = Utils.with_cache(force: force, key: key_by_hostname, default: [], expires_in: @expires_in) do
           resp = Utils.solr_request(connection, 'LIST')
           return [] if resp.nil?
 
@@ -91,7 +92,8 @@ module Sunspot
       # Return all live nodes.
       # Array:: live_nodes
       def live_nodes(force: false)
-        lnodes = Utils.with_cache(force: force, key: 'CACHE_SOLR_LIVE_NODES', default: [], expires_in: @expires_in) do
+        key_by_hostname = "#{Digest::MD5.hexdigest(@config.hostname)[0..9]}_CACHE_LIVE_NODES"
+        lnodes = Utils.with_cache(force: force, key: key_by_hostname, default: [], expires_in: @expires_in) do
           resp = Utils.solr_request(connection, 'CLUSTERSTATUS')
           r = resp['cluster']
           return [] if r.nil?
