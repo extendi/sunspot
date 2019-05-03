@@ -24,7 +24,7 @@ module Sunspot
       attr_reader :sessions
       alias_method :all_sessions, :sessions #:nodoc:
 
-      # 
+      #
       # Initialize with a search session (see ShardingSessionProxy.new) and a
       # collection of one or more shard sessions. See note about changing the
       # number of shard sessions in the documentation for this class.
@@ -34,7 +34,7 @@ module Sunspot
         @sessions = shard_sessions
       end
 
-      # 
+      #
       # Return a session based on the hash of the class and ID, modulo the
       # number of shard sessions.
       #
@@ -42,7 +42,7 @@ module Sunspot
         session_for_index_id(Adapters::InstanceAdapter.adapt(object).index_id)
       end
 
-      # 
+      #
       # See Sunspot.remove_by_id
       #
       def remove_by_id(clazz, *ids)
@@ -52,7 +52,7 @@ module Sunspot
         end
       end
 
-      # 
+      #
       # See Sunspot.remove_by_id!
       #
       def remove_by_id!(clazz, *ids)

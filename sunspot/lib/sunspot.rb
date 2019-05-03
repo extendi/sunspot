@@ -462,7 +462,7 @@ module Sunspot
       session.remove!(*objects, &block)
     end
 
-    # 
+    #
     # Remove an object from the index using its class name and primary key.
     # Useful if you know this information and want to remove an object without
     # instantiating it from persistent storage
@@ -478,7 +478,7 @@ module Sunspot
       session.remove_by_id(clazz, ids)
     end
 
-    # 
+    #
     # Remove an object by class name and primary key, and immediately commit.
     # See #remove_by_id and #commit
     #
@@ -505,7 +505,7 @@ module Sunspot
       session.remove_all(*classes)
     end
 
-    # 
+    #
     # Remove all objects of the given classes from the index and immediately
     # commit. See Sunspot.remove_all
     #
@@ -550,7 +550,7 @@ module Sunspot
       session.dirty?
     end
 
-    # 
+    #
     # Sends a commit (soft or hard) if the session is dirty (see #dirty?).
     #
     def commit_if_dirty(soft_commit = false)

@@ -283,8 +283,8 @@ module Sunspot
         end
 
         failed = rows
-                .select { |row| row[:gstatus] == false }
-                .sort_by { |a| a[:collection] }
+                 .select { |row| row[:gstatus] == false }
+                 .sort_by { |a| a[:collection] }
 
         valid = rows
                 .select { |row| row[:gstatus] == true }
