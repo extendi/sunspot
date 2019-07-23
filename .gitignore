@@ -12,3 +12,7 @@ docs
 .idea
 .directory
 .byebug_history
+.editorconfig
+.rubocop.yml
+.prettierrc.js
+.eslintrc.js
