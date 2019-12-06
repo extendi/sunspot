@@ -127,8 +127,6 @@ module Sunspot
     end
 
     #
-<<<<<<< HEAD
-=======
     # Add id prefix for compositeId router
     #
     def add_id_prefix(attr_name, &block)
@@ -147,7 +145,6 @@ module Sunspot
     end
 
     #
->>>>>>> b58a3c36316966eebfbfa89b91bc3adac482f07f
     # Builder method for evaluating the setup DSL
     #
     def setup(&block)
