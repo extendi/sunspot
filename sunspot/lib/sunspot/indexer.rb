@@ -1,7 +1,7 @@
 require 'sunspot/batcher'
 
 module Sunspot
-  # 
+  #
   # This class presents a service for adding, updating, and removing data
   # from the Solr index. An Indexer instance is associated with a particular
   # setup, and thus is capable of indexing instances of a certain class (and its
@@ -12,7 +12,7 @@ module Sunspot
       @connection = connection
     end
 
-    # 
+    #
     # Construct a representation of the model for indexing and send it to the
     # connection for indexing
     #

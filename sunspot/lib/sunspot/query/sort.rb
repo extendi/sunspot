@@ -1,11 +1,11 @@
 module Sunspot
   module Query
-    # 
+    #
     # The classes in this module implement query components that build sort
     # parameters for Solr. As well as regular sort on fields, there are several
     # "special" sorts that allow ordering for metrics calculated during the
     # search.
-    # 
+    #
     module Sort #:nodoc: all
       DIRECTIONS = {
         :asc => 'asc',
@@ -15,7 +15,7 @@ module Sunspot
       }
 
       class <<self
-        # 
+        #
         # Certain field names are "special", referring to specific non-field
         # sorts, which are generally by other metrics associated with hits.
         #
@@ -30,7 +30,7 @@ module Sunspot
         end
       end
 
-      # 
+      #
       # Base class for sorts. All subclasses should implement the #to_param
       # method, which is a string that is then concatenated with other sort
       # strings by the SortComposite to form the sort parameter.
@@ -42,11 +42,11 @@ module Sunspot
 
         private
 
-        # 
+        #
         # Translate fairly forgiving direction argument into solr direction
         #
         def direction_for_solr
-          DIRECTIONS[@direction] || 
+          DIRECTIONS[@direction] ||
             raise(
               ArgumentError,
               "Unknown sort direction #{@direction}. Acceptable input is: #{DIRECTIONS.keys.map { |input| input.inspect } * ', '}"
@@ -54,7 +54,7 @@ module Sunspot
         end
       end
 
-      # 
+      #
       # A FieldSort is the usual kind of sort, by the value of a particular
       # field, ascending or descending
       #
@@ -71,7 +71,7 @@ module Sunspot
         end
       end
 
-      # 
+      #
       # A RandomSort uses Solr's random field functionality to sort results
       # (usually) randomly.
       #
@@ -79,7 +79,7 @@ module Sunspot
         def initialize(options_or_direction=nil)
           if options_or_direction.is_a?(Hash)
             @seed, @direction = options_or_direction[:seed], options_or_direction[:direction]
-					else
+          else
             @direction = options_or_direction
           end
 
@@ -91,7 +91,7 @@ module Sunspot
         end
       end
 
-      # 
+      #
       # A ScoreSort sorts by keyword relevance score. This is only useful when
       # performing fulltext search.
       #
@@ -153,6 +153,21 @@ module Sunspot
         end
         def to_s
           "#{function}(#{fields.map(&:to_s).join(",")})"
+        end
+      end
+
+      #
+      # A ChildDocumentSort sorts on child documents.
+      #
+      class ChildDocumentSort < Abstract
+        def initialize(field_name, block_join, direction)
+          @field_name = field_name
+          @block_join = block_join
+          @direction = (direction || :asc).to_sym
+        end
+        def to_param
+          field = Setup.for(@block_join[:type]).field(@field_name)
+          "childfield(#{field.indexed_name}) #{@direction}"
         end
       end
     end

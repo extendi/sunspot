@@ -18,7 +18,7 @@ module Sunspot
         hits.select { |h| h.result }
       end
 
-      # 
+      #
       # Populate the Hit objects with their instances. This is invoked the first
       # time any hit has its instance requested, and all hits are loaded as a
       # batch.
@@ -27,10 +27,13 @@ module Sunspot
         id_hit_hash = Hash.new { |h, k| h[k] = {} }
         hits.each do |hit|
           id_hit_hash[hit.class_name][hit.primary_key] = hit
+          hit.children.each do |child_hit|
+            id_hit_hash[child_hit.class_name][child_hit.primary_key] = child_hit
+          end
         end
         id_hit_hash.each_pair do |class_name, hits|
           ids = hits.map { |id, hit| hit.primary_key }
-          data_accessor = data_accessor_for(Util.full_const_get(class_name))          
+          data_accessor = data_accessor_for(Util.full_const_get(class_name))
           hits_for_class = id_hit_hash[class_name]
           data_accessor.load_all(ids).each do |result|
             hit = hits_for_class.delete(Adapters::InstanceAdapter.adapt(result).id.to_s)
@@ -53,7 +56,7 @@ module Sunspot
         verified_hits.each { |hit| yield hit, hit.result }
       end
 
-      # 
+      #
       # Get the data accessor that will be used to load a particular class out of
       # persistent storage. Data accessors can implement any methods that may be
       # useful for refining how data is loaded out of storage. When building a

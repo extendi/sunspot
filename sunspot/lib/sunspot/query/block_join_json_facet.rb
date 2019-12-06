@@ -62,7 +62,7 @@ module Sunspot
               type: 'terms',
               field: @field.indexed_name,
               domain: {
-                @operator => @query.all_parents_filter,
+                @operator => @query.facet_type_filter,
                 FILTER_OP => generate_filter
               }
             }.merge!(init_params)

@@ -5,7 +5,8 @@ module Sunspot
       attr_reader :name
 
       def initialize(field, search, options)
-        @name, @search, @options = name, search, options
+        @search, @options = search, options
+        @name = (options[:name] || field.name)
         @field = field
       end
 

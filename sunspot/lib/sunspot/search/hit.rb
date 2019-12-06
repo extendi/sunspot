@@ -1,6 +1,6 @@
 module Sunspot
   module Search
-    # 
+    #
     # Hit objects represent the raw information returned by Solr for a single
     # document. As well as the primary key and class name, hit objects give
     # access to stored field values, keyword relevance score, and keyword
@@ -9,15 +9,15 @@ module Sunspot
     class Hit
       SPECIAL_KEYS = Set.new(%w(id type score)) #:nodoc:
 
-      # 
+      #
       # Primary key of object associated with this hit, as string.
       #
       attr_reader :primary_key
-      # 
+      #
       # Class name of object associated with this hit, as string.
       #
       attr_reader :class_name
-      # 
+      #
       # Keyword relevance score associated with this result. Nil if this hit
       # is not from a keyword search.
       #
@@ -33,8 +33,9 @@ module Sunspot
         @stored_values = raw_hit
         @stored_cache = {}
         @highlights = highlights
+        @child_documents = (raw_hit['_childDocuments_'] || []).map { |h| Hit.new(h, highlights, search) }
       end
-      
+
       #
       # Returns all highlights for this hit when called without parameters.
       # When a field_name is provided, returns only the highlight for this field.
@@ -55,7 +56,7 @@ module Sunspot
         highlights(field_name).first
       end
 
-      # 
+      #
       # Retrieve stored field value. For any attribute field configured with
       # :stored => true, the Hit object will contain the stored value for
       # that field. The value of this field will be typecast according to the
@@ -80,7 +81,7 @@ module Sunspot
         @stored_cache[field_key] = stored_value(field_name, dynamic_field_name)
       end
 
-      # 
+      #
       # Retrieve the instance associated with this hit. This is lazy-loaded, but
       # the first time it is called on any hit, all the hits for the search will
       # load their instances using the adapter's #load_all method.
@@ -108,6 +109,11 @@ module Sunspot
       #
       def to_param
         self.primary_key
+      end
+
+      def children(type = nil)
+        return @child_documents if type.nil?
+        @child_documents.select { |d| d.class_name == type.name }
       end
 
       private

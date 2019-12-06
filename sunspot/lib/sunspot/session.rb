@@ -87,6 +87,7 @@ module Sunspot
     #
     def index(*objects)
       objects.flatten!
+      verify_indexing_parents!(objects)
       @adds += objects.length
       indexer.add(objects)
     end
@@ -277,6 +278,15 @@ module Sunspot
         Setup.for(types.first)
       else
         CompositeSetup.for(types)
+      end
+    end
+
+    def verify_indexing_parents!(objects)
+      # http://yonik.com/solr-nested-objects#Limitations
+      # Child and parent documents must be indexed in the same block
+      objects.each do |object|
+        next unless Setup.for(object.class).is_child
+        raise 'Child documents must be indexed with their parent'
       end
     end
   end

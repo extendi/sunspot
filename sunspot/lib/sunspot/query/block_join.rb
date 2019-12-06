@@ -152,7 +152,11 @@ module Sunspot
           # to select which parents are used in the query.
           fq = filter_query.to_params[:fq]
           raise 'allParents filter must be non-empty!' if fq.nil?
-          fq[0] # Type filter used by Sunspot
+          Util.escape(fq[0]) # Type filter used by Sunspot
+        end
+
+        def facet_type_filter
+          filter_query.to_params[:fq][0]
         end
 
         def secondary_filter
@@ -176,9 +180,18 @@ module Sunspot
       class ParentWhich < Abstract
         alias some_children_filter secondary_filter
 
-        def all_parents_filter
+        def all_parents_parts
           # Use top-level scope (on parent type) as allParents filter.
-          scope.to_params[:fq].flatten.join(' AND ')
+          parts = scope.to_params[:fq].flatten
+          parts.map { |v| Util.escape(v) }
+        end
+
+        def all_parents_filter(*args)
+          all_parents_parts(*args).join(' AND ')
+        end
+
+        def facet_type_filter
+          scope.to_params[:fq].flatten[0]
         end
 
         def secondary_filter
@@ -190,8 +203,19 @@ module Sunspot
           q
         end
 
+        def field_list_string
+          parts = []
+          parts << '[child'
+          parts << 'parentFilter="' + all_parents_parts[0] + '"'
+          parts << 'childFilter="' + secondary_filter.map { |f| Util.escape(f) }.join(' AND ') + '"]'
+          parts.join(' ')
+        end
+
         def to_params
-          { q: render_query_string('parent', 'which') }
+          {
+            q: render_query_string('parent', 'which'),
+            fl: [:id] + [field_list_string]
+          }
         end
       end
     end
