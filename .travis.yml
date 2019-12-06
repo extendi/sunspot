@@ -16,12 +16,12 @@ before_install:
   - gem install bundler -v 1.17.3
 
 rvm:
-  - 2.1.0
-  - 2.3.8
-  - 2.4.5
-  - 2.5.3
-  - 2.6.3
-  - ruby-head
+  #- 2.1.0
+  #- 2.3.8
+  #- 2.4.5
+  #- 2.5.3
+  - 2.6.5
+  #- ruby-head
   # - rbx-2.0
   # - jruby
 
