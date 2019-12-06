@@ -31,19 +31,19 @@ REM Enable verbose GC logging
 REM set GC_LOG_OPTS=-verbose:gc -XX:+PrintHeapAtGC -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationStoppedTime
 
 REM These GC settings have shown to work well for a number of common Solr workloads
-REM set GC_TUNE=-XX:NewRatio=3 ^
-REM  -XX:SurvivorRatio=4 ^
-REM  -XX:TargetSurvivorRatio=90 ^
-REM  -XX:MaxTenuringThreshold=8 ^
-REM  -XX:+UseConcMarkSweepGC ^
-REM  -XX:ConcGCThreads=4 -XX:ParallelGCThreads=4 ^
-REM  -XX:+CMSScavengeBeforeRemark ^
-REM  -XX:PretenureSizeThreshold=64m ^
-REM  -XX:+UseCMSInitiatingOccupancyOnly ^
-REM  -XX:CMSInitiatingOccupancyFraction=50 ^
-REM  -XX:CMSMaxAbortablePrecleanTime=6000 ^
-REM  -XX:+CMSParallelRemarkEnabled ^
-REM  -XX:+ParallelRefProcEnabled
+set GC_TUNE=-XX:NewRatio=3 ^
+ -XX:SurvivorRatio=4 ^
+ -XX:TargetSurvivorRatio=90 ^
+ -XX:MaxTenuringThreshold=8 ^
+ -XX:+UseConcMarkSweepGC ^
+ -XX:ConcGCThreads=4 -XX:ParallelGCThreads=4 ^
+ -XX:+CMSScavengeBeforeRemark ^
+ -XX:PretenureSizeThreshold=64m ^
+ -XX:+UseCMSInitiatingOccupancyOnly ^
+ -XX:CMSInitiatingOccupancyFraction=50 ^
+ -XX:CMSMaxAbortablePrecleanTime=6000 ^
+ -XX:+CMSParallelRemarkEnabled ^
+ -XX:+ParallelRefProcEnabled
 
 REM Set the ZooKeeper connection string if using an external ZooKeeper ensemble
 REM e.g. host1:2181,host2:2181/chroot

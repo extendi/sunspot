@@ -1,4 +1,4 @@
-version: '3'
+version: '3.1'
 
 services:
   zoo1:
@@ -9,9 +9,7 @@ services:
       - 2181:2181
     environment:
       ZOO_MY_ID: 1
-      ZOO_SERVERS: server.1=0.0.0.0:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
-    networks:
-      - local_net
+      ZOO_SERVERS: server.1=0.0.0.0:2888:3888;2181 server.2=zoo2:2888:3888;2181 server.3=zoo3:2888:3888;2181
   zoo2:
     image: zookeeper
     restart: always
@@ -20,9 +18,7 @@ services:
       - 2182:2181
     environment:
       ZOO_MY_ID: 2
-      ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=0.0.0.0:2888:3888 server.3=zoo3:2888:3888
-    networks:
-      - local_net
+      ZOO_SERVERS: server.1=zoo1:2888:3888;2181 server.2=0.0.0.0:2888:3888;2181 server.3=zoo3:2888:3888;2181
   zoo3:
     image: zookeeper
     restart: always
@@ -31,12 +27,10 @@ services:
       - 2183:2181
     environment:
       ZOO_MY_ID: 3
-      ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=0.0.0.0:2888:3888
-    networks:
-      - local_net
+      ZOO_SERVERS: server.1=zoo1:2888:3888;2181 server.2=zoo2:2888:3888;2181 server.3=0.0.0.0:2888:3888;2181
   solr1:
     container_name: solr1
-    image: solr:7.6.0
+    image: solr:7.7.2
     ports:
      - "8981:8983"
     depends_on:
@@ -57,11 +51,9 @@ services:
       - zoo1:2181,zoo2:2181,zoo3:2181
       - -a
       - "-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1044"
-    networks:
-      - local_net
   solr2:
     container_name: solr2
-    image: solr:7.6.0
+    image: solr:7.7.2
     ports:
      - "8982:8983"
     depends_on:
@@ -80,11 +72,9 @@ services:
       - zoo1:2181,zoo2:2181,zoo3:2181
       - -a
       - "-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1044"
-    networks:
-      - local_net
   solr3:
     container_name: solr3
-    image: solr:7.6.0
+    image: solr:7.7.2
     ports:
      - "8983:8983"
     depends_on:
@@ -103,7 +93,3 @@ services:
       - zoo1:2181,zoo2:2181,zoo3:2181
       - -a
       - "-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1044"
-    networks:
-      - local_net
-networks:
-  local_net:
