@@ -30,11 +30,6 @@ REM set SOLR_JAVA_MEM=-Xms512m -Xmx512m
 REM Enable verbose GC logging
 REM set GC_LOG_OPTS=-verbose:gc -XX:+PrintHeapAtGC -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationStoppedTime
 
-<<<<<<< HEAD
-REM Various GC settings have shown to work well for a number of common Solr workloads.
-REM See solr.cmd GC_TUNE for the default list.
-REM set GC_TUNE=-XX:NewRatio=3 -XX:SurvivorRatio=4     etc.
-=======
 REM These GC settings have shown to work well for a number of common Solr workloads
 set GC_TUNE=-XX:NewRatio=3 ^
  -XX:SurvivorRatio=4 ^
@@ -49,7 +44,6 @@ set GC_TUNE=-XX:NewRatio=3 ^
  -XX:CMSMaxAbortablePrecleanTime=6000 ^
  -XX:+CMSParallelRemarkEnabled ^
  -XX:+ParallelRefProcEnabled
->>>>>>> b58a3c36316966eebfbfa89b91bc3adac482f07f
 
 REM Set the ZooKeeper connection string if using an external ZooKeeper ensemble
 REM e.g. host1:2181,host2:2181/chroot
@@ -119,7 +113,6 @@ REM Uncomment if you want to override previously defined SSL values for HTTP cli
 REM otherwise keep them commented and the above values will automatically be set for HTTP clients
 REM set SOLR_SSL_CLIENT_KEY_STORE=
 REM set SOLR_SSL_CLIENT_KEY_STORE_PASSWORD=
-<<<<<<< HEAD
 REM set SOLR_SSL_CLIENT_KEY_STORE_TYPE=
 REM set SOLR_SSL_CLIENT_TRUST_STORE=
 REM set SOLR_SSL_CLIENT_TRUST_STORE_PASSWORD=
@@ -137,7 +130,3 @@ REM  -DzkCredentialsProvider=org.apache.solr.common.cloud.VMParamsSingleSetCrede
 REM  -DzkDigestUsername=admin-user -DzkDigestPassword=CHANGEME-ADMIN-PASSWORD ^
 REM  -DzkDigestReadonlyUsername=readonly-user -DzkDigestReadonlyPassword=CHANGEME-READONLY-PASSWORD
 REM set SOLR_OPTS=%SOLR_OPTS% %SOLR_ZK_CREDS_AND_ACLS%
-=======
-REM setSOLR_SSL_CLIENT_TRUST_STORE=
-REM setSOLR_SSL_CLIENT_TRUST_STORE_PASSWORD=
->>>>>>> b58a3c36316966eebfbfa89b91bc3adac482f07f
