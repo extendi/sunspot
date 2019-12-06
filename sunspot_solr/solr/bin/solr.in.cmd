@@ -30,9 +30,20 @@ REM set SOLR_JAVA_MEM=-Xms512m -Xmx512m
 REM Enable verbose GC logging
 REM set GC_LOG_OPTS=-verbose:gc -XX:+PrintHeapAtGC -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationStoppedTime
 
-REM Various GC settings have shown to work well for a number of common Solr workloads.
-REM See solr.cmd GC_TUNE for the default list.
-REM set GC_TUNE=-XX:NewRatio=3 -XX:SurvivorRatio=4     etc.
+REM These GC settings have shown to work well for a number of common Solr workloads
+set GC_TUNE=-XX:NewRatio=3 ^
+ -XX:SurvivorRatio=4 ^
+ -XX:TargetSurvivorRatio=90 ^
+ -XX:MaxTenuringThreshold=8 ^
+ -XX:+UseConcMarkSweepGC ^
+ -XX:ConcGCThreads=4 -XX:ParallelGCThreads=4 ^
+ -XX:+CMSScavengeBeforeRemark ^
+ -XX:PretenureSizeThreshold=64m ^
+ -XX:+UseCMSInitiatingOccupancyOnly ^
+ -XX:CMSInitiatingOccupancyFraction=50 ^
+ -XX:CMSMaxAbortablePrecleanTime=6000 ^
+ -XX:+CMSParallelRemarkEnabled ^
+ -XX:+ParallelRefProcEnabled
 
 REM Set the ZooKeeper connection string if using an external ZooKeeper ensemble
 REM e.g. host1:2181,host2:2181/chroot
