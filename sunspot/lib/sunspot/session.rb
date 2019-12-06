@@ -259,7 +259,7 @@ module Sunspot
         read_timeout: config.solr.read_timeout,
         open_timeout: config.solr.open_timeout,
         proxy: config.solr.proxy,
-        update_format: config.solr.update_format || :xml
+        update_format: update_format
       )
     end
 
@@ -277,6 +277,14 @@ module Sunspot
         Setup.for(types.first)
       else
         CompositeSetup.for(types)
+      end
+    end
+
+    def update_format
+      if config.solr.update_format && config.solr.update_format.to_s.match(/xml|json/i)
+        config.solr.update_format.downcase.to_sym
+      else
+        :xml
       end
     end
   end

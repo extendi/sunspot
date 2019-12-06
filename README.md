@@ -20,16 +20,13 @@ For questions about how to use Sunspot in your app, please use the
 [Sunspot Mailing List](http://groups.google.com/group/ruby-sunspot) or search
 [Stack Overflow](http://www.stackoverflow.com).
 
-## Looking for maintainers
-This project is looking for maintainers. An ideal candidate would be someone on a team whose app makes heavy use of the Sunspot gem. If you think you're a good fit, send a message to contact@culturecode.ca.
-
 ## Quickstart with Rails
 
 Add to Gemfile:
 
 ```ruby
 gem 'sunspot_rails'
-gem 'sunspot_solr' # optional pre-packaged Solr distribution for use in development. Please find a section below explaining other options for running Solr in production
+gem 'sunspot_solr' # optional pre-packaged Solr distribution for use in development. Not for use in production.
 ```
 
 Bundle it!
@@ -1048,10 +1045,120 @@ end
 # ...produces:
 # sort: "score desc", fl: "* score", start: 0, rows: 20,
 # fq: ["type:Profile"],
-# q: "(_query_:"{!join from=profile_ids_i to=id_i v=$qTweet91755700 fq=$fqTweet91755700}" OR _query_:"{!join from=profile_ids_i to=id_i v=$qRss91753840 fq=$fqRss91753840}")",
-# qTweet91755700: "_query_:"{!edismax qf='keywords_text' mm='1'}keyword1 keyword2"", fqTweet91755700: "type:Tweet",
-# qRss91753840: "_query_:"{!edismax qf='keywords_text'}keyword3"", fqRss91753840: "type:Rss"
+# q: (_query_:"{!join from=profile_ids_i to=id_i v=$qTweet91755700}" OR _query_:"{!join from=profile_ids_i to=id_i v=$qRss91753840}"),
+# qTweet91755700: _query_:"{!field f=type}Tweet"+_query_:"{!edismax qf='keywords_text' mm='1'}keyword1 keyword2",
+# qRss91753840: _query_:"{!field f=type}Rss"+_query_:"{!edismax qf='keywords_text'}keyword3"
 ```
+
+### Composite ID
+
+**SolrCloud only**
+
+If you use the `compositeId` router (the default), you can send documents with a prefix in
+the `document ID` which will be used to calculate the hash Solr uses to determine the shard a
+document is sent to for indexing. The prefix can be anything you’d like it to be (it doesn’t
+have to be the shard name, for example), but it must be consistent so Solr behaves
+consistently.
+
+For example, if you want to co-locate documents for a customer, you could use the customer
+name or ID as the prefix. If your customer is `IBM`, for example, with a document with the
+ID `12345`, you would insert the prefix into the document id field: `IBM!12345`.
+The exclamation mark (`!`) is critical here, as it distinguishes the prefix used to determine
+which shard to direct the document to.
+
+```ruby
+class Post < ActiveRecord::Base
+  searchable do
+    id_prefix "IBM!"
+    # ...
+  end
+end
+```
+
+The compositeId router supports prefixes containing up to 2 levels of routing. For
+example: a prefix routing first by region, then by customer: `USA!IBM!12345`
+
+```ruby
+class Post < ActiveRecord::Base
+  searchable do
+    id_prefix "USA!IBM!"
+    # ...
+  end
+end
+```
+
+**Usage with Joins**
+
+This feature is also useful with `joins`, which require joined collections to
+be single-sharded. For example, if you have `Blog` and `Post` models and want
+to join fields from `Posts` when searching `Blogs`, you need these two collections
+to stay on the same shard. In this case the configuration would be:
+
+```ruby
+class Blog < ActiveRecord::Base
+  has_many :posts
+
+  searchable do
+    id_prefix "BLOGDATA!"
+    # ...
+  end
+end
+
+class Post < ActiveRecord::Base
+  belongs_to :blog
+
+  searchable do
+    id_prefix "BLOGDATA!"
+    # ...
+  end
+end
+```
+
+As a result, all `Blogs` and `Posts` will be stored on a single shard. But 
+since other `Blogs` will generate other prefixes Solr will distribute them
+evenly across the available shards.
+
+If you have large collections that you want to use joins with and still want to 
+utilize sharding instead of storing everything on a single shard, it's also 
+possible to only ensure a single `Blog` and its associated `Posts` stored on
+a signle shard, while the whole collections could still be distributed across
+multiple shards. The thing is that Solr **can** do distributed joins across
+multiple shards, but the records that have to be joined should be stored on
+a single shard. To achieve this your configuration would look like this:
+
+```ruby
+class Blog < ActiveRecord::Base
+  has_many :posts
+
+  searchable do
+    id_prefix do
+      "BLOGDATA#{self.id}!"
+    end
+    # ...
+  end
+end
+
+class Post < ActiveRecord::Base
+  belongs_to :blog
+
+  searchable do
+    id_prefix do
+      "BLOGDATA#{self.blog_id}!"
+    end
+    # ...
+  end
+end
+```
+
+This way a single `Blog` and its `Ports` have the same ID prefix and will go 
+to a single Shard.
+
+*NOTE:* Solr developers also recommend adjusting replication factor so every shard
+node contains replicas of all shards in the cluster. If you have 4 shards on separate
+nodes each of these nodes should have 4 replicas (one replica of each shard).
+
+More information and usage examples could be found here: 
+https://lucene.apache.org/solr/guide/6_6/shards-and-indexing-data-in-solrcloud.html  
 
 ### Highlighting
 
@@ -1397,8 +1504,8 @@ Post.search.hits.each do |hit|
 end
 ```
 
-Please note that when you have stored fields declared, they all going to be retrieved from Solr every time,
-even if you dont really need them. You can reduce returned stored dataset by using field lists,
+Please note that when you have stored fields declared, they are all going to be retrieved from Solr every time,
+even if you don't really need them. You can reduce returned stored dataset by using field lists,
 or you can skip all of them entirely:
 
 ```ruby
@@ -1512,7 +1619,9 @@ end
 TODO
 
 ## Type Reference
+
 The following FieldTypes are used in sunspot. sunspot_solr will create schema.xml file inside Project for FieldType reference.
+
 * [Boolean](http://lucene.apache.org/solr/4_4_0/solr-core/org/apache/solr/schema/BoolField.html)
 * [SortableFloat](http://lucene.apache.org/solr/4_4_0/solr-core/org/apache/solr/schema/SortableFloatField.html)
 * [Date](http://lucene.apache.org/solr/4_4_0/solr-core/org/apache/solr/schema/DateField.html)
@@ -1550,10 +1659,43 @@ You can examine the value of `Sunspot::Rails.configuration` at runtime.
 
 ## Running Solr in production environment
 
-`sunspot_solr` gem is an easy and convenient way to start your development with Solr.
-However once you are ready to deploy your code to a production, consider using another options like
-[standalone](https://lucene.apache.org/solr/guide/installing-solr.html) or
-[docker](https://hub.docker.com/_/solr/) Solr setup
+`sunspot_solr` gem is a convenient way to start working with Solr in development.
+However, it is not suitable for production use. Below are some options for deploying Solr:
+
+1. [Standalone](https://lucene.apache.org/solr/guide/installing-solr.html) or
+2. [Docker](https://hub.docker.com/_/solr/) Solr setup (also a good alternative for development)
+3. [Chef](https://supermarket.chef.io/cookbooks/solr_6/versions/0.2.0) (can be used with solr 7 as well)
+4. [Ansible](https://github.com/geerlingguy/ansible-role-solr)
+5. [Kubernetes](https://hub.helm.sh/charts/incubator/solr) This deploys a Zookeeper cluster so you will need to convert cores
+   to collections in order to use it.
+
+You can also use Docker Solr for development which, regardless of how you deploy in production, will let you match
+the version you have deployed in production with the version you develop against. This can simplify maintenance of
+your cores. See the examples directory for a suitable starting point for a core you can use.
+
+You can run solr in a docker container with the following commands:
+
+```bash
+docker pull solr:7.7.2
+docker run -p 8983:8983 solr:7.7.2 #Add -d to run it in the background
+```
+
+Or in a docker-compose environment:
+
+```yaml
+solr:
+  image: solr:7.7.2
+  ports:
+    - "8983:8983"
+  volumes:
+    - ./solr/init:/docker-entrypoint-initdb.d/
+    - data:/opt/solr/server/solr/mycores
+  restart:
+    unless-stopped
+```
+
+where the `./solr/init` directory contains a shell script that does any initial setup like downloading and unzipping your cores.
+In both cases, the solr images by default expects cores to be placed in `/opt/solr/server/solr/mycores`.
 
 ## Development
 

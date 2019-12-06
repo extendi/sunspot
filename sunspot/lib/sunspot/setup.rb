@@ -19,6 +19,7 @@ module Sunspot
       @more_like_this_field_factories_cache = Hash.new { |h, k| h[k] = [] }
       @dsl = DSL::Fields.new(self)
       @document_boost_extractor = nil
+      @id_prefix_extractor = nil
       add_field_factory(:class, Type::ClassType.instance)
     end
 
@@ -66,8 +67,13 @@ module Sunspot
       field_factory = FieldFactory::Static.new(name, Type::TextType.instance, options, &block)
       @text_field_factories[name] = field_factory
       @text_field_factories_cache[field_factory.name] = field_factory
-      @stored_field_factories_cache[field_factory.name] << field_factory if stored
-      @more_like_this_field_factories_cache[field_factory.name] << field_factory if more_like_this
+      @field_factories_cache[field_factory.name] = field_factory
+      if stored
+        @stored_field_factories_cache[field_factory.name] << field_factory
+      end
+      if more_like_this
+        @more_like_this_field_factories_cache[field_factory.name] << field_factory
+      end
     end
 
     #
@@ -82,6 +88,7 @@ module Sunspot
       field_factory = FieldFactory::Dynamic.new(name, type, options, &block)
       @dynamic_field_factories[field_factory.signature] = field_factory
       @dynamic_field_factories_cache[field_factory.name] = field_factory
+      @field_factories_cache[field_factory.name] = field_factory
       if stored
         @stored_field_factories_cache[field_factory.name] << field_factory
       end
@@ -120,6 +127,27 @@ module Sunspot
     end
 
     #
+<<<<<<< HEAD
+=======
+    # Add id prefix for compositeId router
+    #
+    def add_id_prefix(attr_name, &block)
+      @id_prefix_extractor =
+        case attr_name
+        when Symbol
+          DataExtractor::AttributeExtractor.new(attr_name)
+        when String
+          DataExtractor::Constant.new(attr_name)
+        when nil
+          DataExtractor::BlockExtractor.new(&block) if block_given?
+        else
+          raise ArgumentError,
+            "The ID prefix has to be either a Symbol, a String or a Proc"
+        end
+    end
+
+    #
+>>>>>>> b58a3c36316966eebfbfa89b91bc3adac482f07f
     # Builder method for evaluating the setup DSL
     #
     def setup(&block)
@@ -282,6 +310,16 @@ module Sunspot
     def document_boost_for(model)
       if @document_boost_extractor
         @document_boost_extractor.value_for(model)
+      end
+    end
+
+    def id_prefix_for(model)
+      if @id_prefix_extractor
+        value = @id_prefix_extractor.value_for(model)
+
+        if value.is_a?(String) and value.size > 0
+          value[-1] == "!" ? value : "#{value}!"
+        end
       end
     end
 

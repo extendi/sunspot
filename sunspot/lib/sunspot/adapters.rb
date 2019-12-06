@@ -56,6 +56,20 @@ module Sunspot
       end
 
       #
+      # An ID prefix to be added to the index_id
+      #
+      # ==== Returns
+      #
+      # String:: ID prefix for use in index ID to determine
+      # the shard a document is sent to for indexing
+      #
+      def id_prefix
+        setup = Sunspot::Setup.for(@instance.class)
+
+        setup && setup.id_prefix_for(@instance)
+      end
+
+      #
       # The universally-unique ID for this instance that will be stored in solr
       #
       # ==== Returns
@@ -63,7 +77,7 @@ module Sunspot
       # String:: ID for use in Solr
       #
       def index_id #:nodoc:
-        InstanceAdapter.index_id_for(@instance.class.name, id)
+        InstanceAdapter.index_id_for("#{id_prefix}#{@instance.class.name}", id)
       end
 
       class <<self
