@@ -8,7 +8,7 @@ $:.unshift(lib) unless $:.include?(lib)
 require 'sunspot/version'
 
 Gem::Specification.new do |s|
-  s.name        = 'extendi_sunspot_rails'
+  s.name        = 'sunspot_rails'
   s.version     = Sunspot::VERSION
   s.platform    = Gem::Platform::RUBY
   s.authors     = ['Mat Brown', 'Peer Allan', 'Dmitriy Dzema', 'Benjamin Krause', 'Marcel de Graaf', 'Brandon Keepers', 'Peter Berkenbosch',
