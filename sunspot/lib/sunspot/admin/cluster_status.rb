@@ -89,14 +89,14 @@ module Sunspot
           bad_collections = []
 
           rows.each do |row|
-            if row[:status] == :bad && row[:recoverable] == :no
+            if row[:status] == :bad && row[:recoverable] == false
               status = 'red'
               bad_collections << {
                 collection: row[:collection],
                 base_url: row[:bad_urls],
                 recoverable: false
               }
-            elsif row[:status] == :bad && row[:recoverable] == :yes
+            elsif row[:status] == :bad && row[:recoverable] == true
               status = 'orange' unless status == 'red'
               bad_collections << {
                 collection: row[:collection],
