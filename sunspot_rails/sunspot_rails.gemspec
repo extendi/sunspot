@@ -32,7 +32,7 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map { |f| File.basename(f) }
   s.require_paths = ['lib']
 
-  s.add_dependency 'rails', '>= 3'
+  s.add_dependency 'rails', '>= 5'
 
   s.add_dependency 'sunspot', Sunspot::VERSION
   s.add_dependency 'terminal-table', '~>1.8'
