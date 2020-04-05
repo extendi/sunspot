@@ -108,7 +108,8 @@ case $GEM in
   "sunspot")
 
     cd sunspot
-    bundle install --quiet --path vendor/bundle
+    bundle config --local path vendor/bundle
+    bundle install --quiet
 
     start_server
 
@@ -124,12 +125,14 @@ case $GEM in
   "sunspot_rails")
 
     cd sunspot
-    bundle install --quiet --path vendor/bundle
+    bundle config --local path vendor/bundle
+    bundle install --quiet
 
     start_server
 
     cd ../sunspot_rails
-    bundle install --quiet --path vendor/bundle
+    bundle config --local path vendor/bundle
+    bundle install --quiet
     gem list
     bundle exec appraisal install && bundle exec appraisal rspec
     rv=$?
