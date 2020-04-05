@@ -119,7 +119,6 @@ module Sunspot
     end
 
     def logger
-      @logger ||= ::Rails.logger
       @logger ||= Logger.new(STDOUT)
     end
   end
