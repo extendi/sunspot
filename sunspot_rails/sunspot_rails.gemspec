@@ -34,7 +34,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'rails', '>= 5'
 
-  s.add_dependency 'sunspot', Sunspot::VERSION
+  # s.add_dependency 'sunspot', Sunspot::VERSION
   s.add_dependency 'terminal-table', '~>1.8'
 
   s.add_development_dependency 'appraisal', '2.2.0'

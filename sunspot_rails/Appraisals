@@ -4,7 +4,7 @@ ruby_version = Gem::Version.new(RUBY_VERSION)
 
 
 if ruby_version >= Gem::Version.new('2.2.0')
-  ['5.2.4.2', '6.0.2.2 '].each do |rails_version|
+  ['5.2.4.2', '6.0.2.2 ].each do |rails_version|
     appraise "rails-#{rails_version}" do
       gem 'sunspot', path: File.expand_path('sunspot', ENV['SUNSPOT_LIB_HOME'])
       gem 'sunspot_solr', path: File.expand_path('sunspot_solr', ENV['SUNSPOT_LIB_HOME'])
