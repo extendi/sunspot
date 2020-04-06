@@ -11,9 +11,8 @@ cache:
     - sunspot_rails/vendor/bundle
 
 before_install:
-  - gem install rubygems-update -v 3.1.2
   - update_rubygems
-  - gem install bundler -v 2.1.4
+  - gem install bundler -v 2.1.2
 
 rvm:
   - 2.6.5

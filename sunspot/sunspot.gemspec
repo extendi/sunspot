@@ -35,7 +35,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'appraisal', '2.2.0'
   s.add_development_dependency 'byebug', '9.0.6'
   s.add_development_dependency 'rake', '~> 13.0'
-  s.add_development_dependency 'rspec', '~> 3.7'
+  s.add_development_dependency 'rspec', '~> 3.9'
   s.add_development_dependency 'sqlite3', '~> 1.4'
 
   s.rdoc_options << '--webcvs=http://github.com/outoftime/sunspot/tree/master/%s' <<
