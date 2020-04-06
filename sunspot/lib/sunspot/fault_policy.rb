@@ -87,39 +87,40 @@ module Sunspot
 
     private
 
-    # Remove the host from @faulty_host cache that are too
-    def clean_faulty_state
-      @faulty_hosts = @faulty_hosts.select do |_k, v|
-        (Time.now - v[1]).to_i < 3600
+      # Remove the host from @faulty_host cache that are too
+      def clean_faulty_state
+        @faulty_hosts = @faulty_hosts.select do |_k, v|
+          (Time.now - v[1]).to_i < 3600
+        end
       end
-    end
 
-    #
-    # Return true if an host is in fault state
-    # An host is in fault state if and only if:
-    # - #number of fault >= 3
-    # - time in fault state is 1h
-    #
-    def faulty?(hostname)
-      @faulty_hosts.key?(hostname) &&
-        @faulty_hosts[hostname].first >= 3
-    end
+      #
+      # Return true if an host is in fault state
+      # An host is in fault state if and only if:
+      # - #number of fault >= 3
+      # - time in fault state is 1h
+      #
+      def faulty?(hostname)
+        @faulty_hosts.key?(hostname) &&
+          @faulty_hosts[hostname].first >= 3
+      end
 
-    def reset_counter_faulty(hostname)
-      @faulty_hosts.delete(hostname)
-    end
+      def reset_counter_faulty(hostname)
+        @faulty_hosts.delete(hostname)
+      end
 
-    def update_faulty_host(hostname)
-      @faulty_hosts ||= {}
-      @faulty_hosts[hostname] ||= [0, Time.now]
-      @faulty_hosts[hostname][0] += 1
-      @faulty_hosts[hostname][1]  = Time.now
+      def update_faulty_host(hostname)
+        @faulty_hosts ||= {}
+        @faulty_hosts[hostname] ||= [0, Time.now]
+        @faulty_hosts[hostname][0] += 1
+        @faulty_hosts[hostname][1]  = Time.now
 
-      logger.error "Putting #{hostname} in fault state" if faulty?(hostname)
-    end
+        logger.error "Putting #{hostname} in fault state" if faulty?(hostname)
+      end
 
-    def logger
-      @logger ||= Logger.new(STDOUT)
-    end
+      def logger
+        @logger ||= ::Rails.logger if defined?(::Rails)
+        @logger ||= Logger.new(STDOUT)
+      end
   end
 end
