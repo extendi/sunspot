@@ -39,7 +39,7 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency 'appraisal', '2.2.0'
   s.add_development_dependency 'bundler'
-  s.add_development_dependency 'byebug', '~> 3.1'
+  s.add_development_dependency 'byebug', '~> 11.1.1'
   s.add_development_dependency 'nokogiri'
   s.add_development_dependency 'rake', '~> 13.0'
   s.add_development_dependency 'rspec', '~> 3.9'

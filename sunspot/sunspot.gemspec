@@ -33,7 +33,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'terminal-table', '~>1.8'
 
   s.add_development_dependency 'appraisal', '2.2.0'
-  s.add_development_dependency 'byebug', '9.0.6'
+  s.add_development_dependency 'byebug', '~> 11.1.1'
   s.add_development_dependency 'rake', '~> 13.0'
   s.add_development_dependency 'rspec', '~> 3.9'
   s.add_development_dependency 'sqlite3', '~> 1.4'
