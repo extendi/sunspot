@@ -152,6 +152,8 @@ case $GEM in
 
     cd sunspot_solr
     bundle config --local set path 'vendor/bundle'
+    bundle install --quiet
+    bundle clean --force
     bundle exec rake spec
     exit $?
     ;;
