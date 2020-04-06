@@ -32,21 +32,17 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map { |f| File.basename(f) }
   s.require_paths = ['lib']
 
-  if RUBY_VERSION < '2.2'
-    s.add_dependency 'rails', '>= 3', '< 5'
-  else
-    s.add_dependency 'rails', '>= 3'
-  end
+  s.add_dependency 'rails', '>= 5'
 
-  s.add_dependency 'sunspot', Sunspot::VERSION
+  # s.add_dependency 'sunspot', Sunspot::VERSION
   s.add_dependency 'terminal-table', '~>1.8'
 
   s.add_development_dependency 'appraisal', '2.2.0'
-  s.add_development_dependency 'bundler', '>= 1.3.0', '< 2.0' if RUBY_VERSION <= '2.0.0'
-  s.add_development_dependency 'byebug', '~> 3.1'
-  s.add_development_dependency 'nokogiri', '< 1.7' if RUBY_VERSION <= '2.0.0'
-  s.add_development_dependency 'rake', '< 12.3'
-  s.add_development_dependency 'rspec', '~> 3.7'
-  s.add_development_dependency 'rspec-rails', '~> 3.7'
-  s.add_development_dependency 'sqlite3',  '~> 1.3', '< 1.4'
+  s.add_development_dependency 'bundler'
+  s.add_development_dependency 'byebug', '~> 11.1.1'
+  s.add_development_dependency 'nokogiri'
+  s.add_development_dependency 'rake', '~> 13.0'
+  s.add_development_dependency 'rspec', '~> 3.9'
+  s.add_development_dependency 'rspec-rails', '~> 4.0'
+  s.add_development_dependency 'sqlite3',  '~> 1.4'
 end

@@ -33,7 +33,8 @@ start_solr_server() {
   # go to sunspot_solr folder and install dependencies
   current_path=`pwd`
   cd ../sunspot_solr
-  bundle install --quiet --path vendor/bundle
+  bundle config --local set path 'vendor/bundle'
+  bundle install --quiet
 
   # stop solr of already running (but it should not be)
   if [ -f sunspot-solr.pid ]; then stop_solr_server || true; fi
@@ -108,7 +109,10 @@ case $GEM in
   "sunspot")
 
     cd sunspot
-    bundle install --quiet --path vendor/bundle
+    gem install bundler -v 2.1.2
+    bundle --version
+    bundle config --local set path 'vendor/bundle'
+    bundle install --quiet
 
     start_server
 
@@ -124,13 +128,17 @@ case $GEM in
   "sunspot_rails")
 
     cd sunspot
-    bundle install --quiet --path vendor/bundle
+    gem install bundler -v 2.1.2
+    bundle config --local set path 'vendor/bundle'
+    bundle install --quiet
+    bundle clean --force
 
     start_server
 
     cd ../sunspot_rails
-    bundle install --quiet --path vendor/bundle
-    gem list
+    bundle config --local set path 'vendor/bundle'
+    bundle install --quiet
+    bundle clean --force
     bundle exec appraisal install && bundle exec appraisal rspec
     rv=$?
 
@@ -143,7 +151,9 @@ case $GEM in
   "sunspot_solr")
 
     cd sunspot_solr
-    bundle install --quiet --path vendor/bundle
+    bundle config --local set path 'vendor/bundle'
+    bundle install --quiet
+    bundle clean --force
     bundle exec rake spec
     exit $?
     ;;

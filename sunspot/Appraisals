@@ -1,6 +1,4 @@
-appraise 'rsolr-1.x' do
-  gem 'rsolr', '>= 1', '< 2'
-end
+# frozen_string_literal: true
 
 appraise 'rsolr-2.x' do
   gem 'rsolr', '>= 2', '< 3'
