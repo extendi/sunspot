@@ -21,7 +21,7 @@ rvm:
   # - jruby
 
 jdk:
-  - openjdk11
+  - openjdk8
 
 env:
   - GEM=sunspot UPDATE_FORMAT=xml
