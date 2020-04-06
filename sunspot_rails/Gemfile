@@ -4,4 +4,4 @@ source 'http://rubygems.org'
 
 gemspec
 
-gem 'sunspot', git: 'https://github.com/extendi/sunspot', tag: "v#{Sunspot::VERSION}"
+gem 'sunspot', git: 'https://github.com/extendi/sunspot', tag: "v#{::Sunspot::VERSION}"
