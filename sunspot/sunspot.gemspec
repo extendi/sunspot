@@ -14,8 +14,8 @@ Gem::Specification.new do |s|
                   'Bragadeesh J', 'Ethiraj Srinivasan']
   s.email       = ['mat@patch.com']
   s.homepage    = 'https://github.com/extendi/sunspot'
-  s.summary = 'Library for expressive, powerful interaction with the Solr search engine'
-  s.license = 'MIT'
+  s.summary     = 'Library for expressive, powerful interaction with the Solr search engine'
+  s.license     = 'MIT'
   s.description = <<-TEXT
     Sunspot is a library providing a powerful, all-ruby API for the Solr search engine. Sunspot manages the configuration of persistent
     Ruby classes for search and indexing and exposes Solr's most powerful features through a collection of DSLs. Complex search operations

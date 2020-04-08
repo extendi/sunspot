@@ -55,7 +55,7 @@ module Sunspot
     #
     def with_exception_handling
       retries = 0
-      max_retries = 3
+      max_retries = @max_retries || 3
       begin
         yield
         # reset counter of faulty_host for the current host
