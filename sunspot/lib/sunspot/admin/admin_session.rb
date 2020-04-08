@@ -92,7 +92,7 @@ module Sunspot
       # Return all live nodes.
       # Array:: live_nodes
       def live_nodes(force: false)
-        return ["#{@config.hostname}:#{@config.port}"] if @config.hostname == '127.0.0.1' || @config.hostname == 'localhost'
+        return ["#{@config.hostname}:#{@config.port}"] if ['127.0.0.1', 'localhost', 'solr'].include?(@config.hostname)
 
         key_by_hostname = "#{Digest::MD5.hexdigest(@config.hostname)[0..9]}_CACHE_LIVE_NODES"
         lnodes = Utils.with_cache(force: force, key: key_by_hostname, default: [], expires_in: @expires_in) do
