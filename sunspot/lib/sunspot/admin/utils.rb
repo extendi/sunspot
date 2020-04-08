@@ -5,22 +5,15 @@ module Sunspot
     class Utils
       # Helper function for solr caching
       def self.with_cache(force: false, key:, retries: 0, max_retries: 3, default: nil, expires_in:)
-        # Use rails cache if Rails defined, use memory instead
-        if defined?(::Rails.cache)
-          ::Rails.cache.fetch(key, expires_in: expires_in, force: force) { yield }
-        else
-          @cached ||= {}
-          if force
-            r = yield
-          elsif
-            time = Time.now
-            if !@cached[key].present? || (time - (@cached[:time] || time)) > expires_in
-              @cached[key] = yield
-              @cached[:time] = time
-            end
-            r = @cached[key]
+        return default if retries >= max_retries
+
+        r =
+          if defined?(::Rails.cache)
+            ::Rails.cache.fetch(key, expires_in: expires_in, force: force) { yield }
+          else
+            yield
           end
-        end
+
         if r.nil?
           with_cache(
             force: true,
