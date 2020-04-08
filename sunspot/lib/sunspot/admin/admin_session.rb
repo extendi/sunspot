@@ -92,6 +92,8 @@ module Sunspot
       # Return all live nodes.
       # Array:: live_nodes
       def live_nodes(force: false)
+        return ["#{@config.hostname}:#{@config.port}"] if @config.hostname == '127.0.0.1' || @config.hostname == 'localhost'
+
         key_by_hostname = "#{Digest::MD5.hexdigest(@config.hostname)[0..9]}_CACHE_LIVE_NODES"
         lnodes = Utils.with_cache(force: force, key: key_by_hostname, default: [], expires_in: @expires_in) do
           resp = Utils.solr_request(connection, 'CLUSTERSTATUS')
@@ -131,11 +133,11 @@ module Sunspot
         begin
           response = connection.get :collections, params: params
           collections(force: true)
-          return { status: 200, time: response['responseHeader']['QTime'] }
+          { status: 200, time: response['responseHeader']['QTime'] }
         rescue RSolr::Error::Http => e
           status = e.try(:response).try(:[], :status)
           message = e.try(:message) || e.inspect
-          return { status: status, message: (status ? message[/^.*$/] : message) }
+          { status: status, message: (status ? message[/^.*$/] : message) }
         end
       end
 
@@ -150,11 +152,11 @@ module Sunspot
         begin
           response = connection.get :collections, params: params
           collections(force: true)
-          return { status: 200, time: response['responseHeader']['QTime'] }
+          { status: 200, time: response['responseHeader']['QTime'] }
         rescue RSolr::Error::Http => e
           status = e.try(:response).try(:[], :status)
           message = e.try(:message) || e.inspect
-          return { status: status, message: (status ? message[/^.*$/] : message) }
+          { status: status, message: (status ? message[/^.*$/] : message) }
         end
       end
 
@@ -169,11 +171,11 @@ module Sunspot
         begin
           response = connection.get :collections, params: params
           collections(force: true) if refresh_list
-          return { status: 200, time: response['responseHeader']['QTime'] }
+          { status: 200, time: response['responseHeader']['QTime'] }
         rescue RSolr::Error::Http => e
           status = e.try(:response).try(:[], :status)
           message = e.try(:message) || e.inspect
-          return { status: status, message: (status ? message[/^.*$/] : message) }
+          { status: status, message: (status ? message[/^.*$/] : message) }
         end
       end
 
@@ -181,13 +183,13 @@ module Sunspot
 
       private
 
-      def adjsut_solr_resp(resp)
-        if resp.is_a?(String) && Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.4')
-          Marshal.load(resp)
-        else
-          resp
+        def adjsut_solr_resp(resp)
+          if resp.is_a?(String) && Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.4')
+            Marshal.load(resp)
+          else
+            resp
+          end
         end
-      end
     end
   end
 end
