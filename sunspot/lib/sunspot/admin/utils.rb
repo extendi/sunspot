@@ -11,7 +11,17 @@ module Sunspot
           if defined?(::Rails.cache)
             ::Rails.cache.fetch(key, expires_in: expires_in, force: force) { yield }
           else
-            yield
+            @cached ||= {}
+            if force
+              yield
+            else
+              time = Time.now
+              if !@cached[key].present? || (time - (@cached[:time] || time)) > expires_in
+                @cached[key] = yield
+                @cached[:time] = time
+              end
+              @cached[key]
+            end
           end
 
         if r.nil?
@@ -36,7 +46,11 @@ module Sunspot
       end
 
       def self.remove_key_from_cache(key)
-        ::Rails.cache.delete(key) if defined?(::Rails.cache)
+        if defined?(::Rails.cache)
+          ::Rails.cache.delete(key)
+        else
+          @cached[key] = nil
+        end
       end
     end
   end
