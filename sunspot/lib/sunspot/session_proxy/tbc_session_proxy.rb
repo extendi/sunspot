@@ -365,7 +365,7 @@ module Sunspot
         # String:: collection_name
         #
         def collection_name(year:, month:, day: nil, collection_postfix: nil)
-          name = day ? "#{year}_#{month}_#{day}" : "#{year}_#{month}"
+          name = day.present? ? "#{year}_#{month}_#{day}" : "#{year}_#{month}"
           names = []
           names << @config.collection['base_name']
           names << name
