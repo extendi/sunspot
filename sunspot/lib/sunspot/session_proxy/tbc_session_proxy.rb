@@ -42,7 +42,8 @@ module Sunspot
         date_from: default_init_date,
         date_to: default_end_date,
         fn_collection_filter: ->(collections) { collections }, # predicate filter for collection
-        max_retries: nil)
+        max_retries: nil,
+        daily: false)
 
         validate_config(config)
 
@@ -54,6 +55,7 @@ module Sunspot
         @solr = Admin::Session.new(config: config)
         @fn_collection_filter = fn_collection_filter
         @max_retries = max_retries
+        @daily = daily
       end
 
       #
@@ -340,7 +342,7 @@ module Sunspot
           date_from = Time.at(date_from).utc.to_date
           date_to = Time.at(date_to).utc.to_date
           qc = (date_from..date_to)
-               .map { |d| collection_name(year: d.year, month: d.month) }
+               .map { |d| collection_name(year: d.year, month: d.month, day: @daily ? d.day : nil) }
                .sort
                .uniq
           filter_with_solr(qc)
@@ -355,17 +357,18 @@ module Sunspot
           raise TypeError, "Type mismatch :time_routed_on on class #{object.class} is not a Time" unless object.time_routed_on.is_a?(Time)
           ts = object.time_routed_on.utc
           c_postfix = object.collection_postfix if object.respond_to?(:collection_postfix)
-          collection_name(year: ts.year, month: ts.month, collection_postfix: c_postfix)
+          collection_name(year: ts.year, month: ts.month,  day: @daily ? ts.day : nil, collection_postfix: c_postfix)
         end
 
         #
-        # The collection name is based on base_name, year, month
+        # The collection name is based on base_name, year, month, day (if daily)
         # String:: collection_name
         #
-        def collection_name(year:, month:, collection_postfix: nil)
+        def collection_name(year:, month:, day: nil, collection_postfix: nil)
+          name = day ? "#{year}_#{month}_#{day}" : "#{year}_#{month}"
           names = []
           names << @config.collection['base_name']
-          names << "#{year}_#{month}"
+          names << name
           names << collection_postfix if collection_postfix
           names.join('_')
         end
