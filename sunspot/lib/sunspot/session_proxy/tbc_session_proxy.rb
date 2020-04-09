@@ -42,6 +42,7 @@ module Sunspot
         date_from: default_init_date,
         date_to: default_end_date,
         fn_collection_filter: ->(collections) { collections }, # predicate filter for collection
+        solr_collections: nil,
         max_retries: nil,
         daily: false)
 
@@ -54,6 +55,7 @@ module Sunspot
         @host_index = 0
         @solr = Admin::Session.new(config: config)
         @fn_collection_filter = fn_collection_filter
+        @solr_collections = solr_collections
         @max_retries = max_retries
         @daily = daily
       end
@@ -88,12 +90,16 @@ module Sunspot
       # and that are filtered using fn_collection_filter function
       #
       def search_collections
-        collections = @fn_collection_filter.call(
-          calculate_search_collections(
-            date_from: @date_from,
-            date_to: @date_to
+        if @solr_collections.present?
+          collections = @solr_collections
+        else
+          collections = @fn_collection_filter.call(
+            calculate_search_collections(
+              date_from: @date_from,
+              date_to: @date_to
+            )
           )
-        )
+        end
         filter_with_solr_eq(collections)
       end
 
