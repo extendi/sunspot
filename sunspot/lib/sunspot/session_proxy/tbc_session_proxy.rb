@@ -91,7 +91,7 @@ module Sunspot
       #
       def search_collections
         if @solr_collections.present?
-          @solr_collections
+          collections = @solr_collections
         else
           collections = @fn_collection_filter.call(
             calculate_search_collections(
@@ -99,8 +99,8 @@ module Sunspot
               date_to: @date_to
             )
           )
-          filter_with_solr_eq(collections)
         end
+        filter_with_solr_eq(collections)
       end
 
       #
