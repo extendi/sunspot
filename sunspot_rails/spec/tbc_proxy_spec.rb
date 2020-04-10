@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require File.expand_path('spec_helper', File.dirname(__FILE__))
 require File.expand_path('../lib/sunspot/rails/spec_helper', File.dirname(__FILE__))
 
@@ -14,7 +16,7 @@ class TbcPostWrongTime < Post
   end
 end
 
-describe Sunspot::SessionProxy::TbcSessionProxy, :type => :cloud do
+describe Sunspot::SessionProxy::TbcSessionProxy, type: :cloud do
   before :all do
     @config = Sunspot::Configuration.build
     @base_name = @config.collection['base_name']
@@ -54,7 +56,7 @@ describe Sunspot::SessionProxy::TbcSessionProxy, :type => :cloud do
     @proxy.index!(Post.create(title: 'basic post'))
   end
 
-  it 'collections shoud contains the current one' do
+  it 'collections should contains the current one' do
     @proxy.solr.create_collection(collection_name: "#{@base_name}_2009_10_hr")
 
     post = Post.create(title: 'basic post', created_at: Time.new(2009, 10, 1, 12))
@@ -73,7 +75,7 @@ describe Sunspot::SessionProxy::TbcSessionProxy, :type => :cloud do
     expect(collections).to include("#{c_name}_#{post.collection_postfix}")
   end
 
-  it 'has some livenodes' do
+  it 'has some live nodes' do
     assert @proxy.solr.live_nodes.length > 0
   end
 
@@ -114,6 +116,19 @@ describe Sunspot::SessionProxy::TbcSessionProxy, :type => :cloud do
     ]
   end
 
+  it 'retrieve only specified solr_collection' do
+    @proxy.solr.create_collection(collection_name: 'test1')
+    @proxy.solr.create_collection(collection_name: 'test2')
+    sleep 5
+
+    my_proxy = Sunspot::SessionProxy::TbcSessionProxy.new(
+      solr_collections: lambda do |_collections|
+        ['test1', 'foo']
+      end
+    )
+    assert my_proxy.search_collections == ['test1']
+  end
+
   it 'check valid collection for Post' do
     @proxy.solr.create_collection(collection_name: "#{@base_name}_2009_10_a")
     @proxy.solr.create_collection(collection_name: "#{@base_name}_2009_10_b")
@@ -136,6 +151,33 @@ describe Sunspot::SessionProxy::TbcSessionProxy, :type => :cloud do
       "#{@base_name}_2009_10_c"
     )
   end
+
+  it 'check valid collection for Post when daily is true' do
+    Sunspot::SessionProxy::TbcSessionProxy.new(
+      date_from: Time.new(2009, 1, 1, 12),
+      date_to: Time.new(2010, 1, 1, 12),
+      daily: true
+    )
+    @proxy.solr.create_collection(collection_name: "#{@base_name}_2009_10_1")
+    @proxy.solr.create_collection(collection_name: "#{@base_name}_2009_10_a")
+    sleep 3
+
+    post = Post.create(
+      title: 'basic post',
+      created_at: Time.new(2009, 10, 1, 12)
+    )
+    @proxy.index!(post)
+
+    sleep 5
+    supported = @proxy.calculate_valid_collections(Post)
+
+    expect(supported).to include("#{@base_name}_2009_10_1")
+    expect(supported).not_to include(
+      "#{@base_name}_2009_10_a"
+    )
+  end
+
+
 
   it 'index two documents and retrieve one in hr type collection' do
     @proxy.solr.delete_collection(collection_name: "#{@base_name}_2009_10_hr")
