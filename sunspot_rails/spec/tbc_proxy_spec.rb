@@ -151,23 +151,23 @@ describe Sunspot::SessionProxy::TbcSessionProxy, type: :cloud do
   end
 
   it 'check valid collection for Post when daily is true' do
-    Sunspot::SessionProxy::TbcSessionProxy.new(
+    session = Sunspot::SessionProxy::TbcSessionProxy.new(
       date_from: Time.new(2009, 1, 1, 12),
       date_to: Time.new(2010, 1, 1, 12),
       daily: true
     )
-    @proxy.solr.create_collection(collection_name: "#{@base_name}_2009_10_1")
-    @proxy.solr.create_collection(collection_name: "#{@base_name}_2009_10_a")
+    session.solr.create_collection(collection_name: "#{@base_name}_2009_10_1")
+    session.solr.create_collection(collection_name: "#{@base_name}_2009_10_a")
     sleep 3
 
     post = Post.create(
       title: 'basic post',
       created_at: Time.new(2009, 10, 1, 12)
     )
-    @proxy.index!(post)
+    session.index!(post)
 
     sleep 5
-    supported = @proxy.calculate_valid_collections(Post)
+    supported = session.calculate_valid_collections(Post)
     expect(supported).to include("#{@base_name}_2009_10_1")
     expect(supported).not_to include("#{@base_name}_2009_10_a")
   end
