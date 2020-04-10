@@ -122,9 +122,7 @@ describe Sunspot::SessionProxy::TbcSessionProxy, type: :cloud do
     sleep 5
 
     my_proxy = Sunspot::SessionProxy::TbcSessionProxy.new(
-      solr_collections: lambda do |_collections|
-        ['test1', 'foo']
-      end
+      solr_collections: ['test1', 'foo']
     )
     assert my_proxy.search_collections == ['test1']
   end
@@ -170,11 +168,8 @@ describe Sunspot::SessionProxy::TbcSessionProxy, type: :cloud do
 
     sleep 5
     supported = @proxy.calculate_valid_collections(Post)
-
     expect(supported).to include("#{@base_name}_2009_10_1")
-    expect(supported).not_to include(
-      "#{@base_name}_2009_10_a"
-    )
+    expect(supported).not_to include("#{@base_name}_2009_10_a")
   end
 
 
