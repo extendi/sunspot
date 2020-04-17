@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 module Sunspot
   module Query
     class FieldJsonFacet < AbstractJsonFieldFacet
-
       def initialize(field, options, setup)
         super
       end
