@@ -16,7 +16,7 @@ module Sunspot
 
       #
       # Get all of the superclasses for a given class, including the class
-      # itself, if sunspot_type defined returns it.
+      # itself, if sunspot_disable_ancestors defined and true we use the class without ancestors.
       #
       # ==== Parameters
       #
@@ -27,9 +27,9 @@ module Sunspot
       # Array:: Collection containing class and its superclasses
       #
       def superclasses_for(clazz)
-        if clazz.respond_to?(:sunspot_type)
-          raise StandardError.new('sunspot_type must be an array of strings') unless clazz.sunspot_type.is_a?(Array)
-          clazz.sunspot_type.map { |t| Struct.new(:name).new(t) }
+        if clazz.respond_to?(:sunspot_disable_ancestors)
+          raise StandardError.new('sunspot_disable_ancestors must be true') unless clazz.sunspot_disable_ancestors.is_a?(TrueClass)
+          superclasses = [clazz]
         else
           superclasses = [clazz]
           superclasses << (clazz = clazz.superclass) while clazz.superclass != Object

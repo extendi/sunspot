@@ -1,14 +1,14 @@
 require File.join(File.dirname(__FILE__), 'blog')
 require File.join(File.dirname(__FILE__), 'super_class')
 
-class PostWithSunspotType < SuperClass
+class PostWithDisableAncestors < SuperClass
   attr_accessor :title, :body, :blog_id, :published_at, :ratings_average,
                 :author_name, :featured, :expire_date, :coordinates, :tags,
                 :featured_for
   alias_method :featured?, :featured
 
-  def self.sunspot_type
-    ['PostWithSunspotType']
+  def self.sunspot_disable_ancestors
+    true
   end
 
   def category_ids
@@ -40,7 +40,7 @@ class PostWithSunspotType < SuperClass
     attr_writer :category_ids, :custom_string, :custom_underscored_string, :custom_fl, :custom_time, :custom_boolean
 end
 
-Sunspot.setup(PostWithSunspotType) do
+Sunspot.setup(PostWithDisableAncestors) do
   text :title, boost: 2
   text :text_array, boost: 3 do
     [title, title]
@@ -101,5 +101,8 @@ Sunspot.setup(PostWithSunspotType) do
   end
 end
 
-class PhotoPost < Post
+class PhotoPostWithDisableAncestors < PostWithDisableAncestors
+  def self.sunspot_disable_ancestors
+    true
+  end
 end

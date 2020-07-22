@@ -2,7 +2,7 @@ require File.expand_path('../spec_helper', File.dirname(__FILE__))
 
 context 'indexing' do
 
-  describe 'without sunspot_type' do
+  describe 'without sunspot_disable_ancestors' do
     it 'should index non-multivalued field with newlines' do
       expect do
         Sunspot.index!(Post.new(title: "A\nTitle"))
@@ -56,41 +56,41 @@ context 'indexing' do
     end
   end
 
-  describe 'with sunspot_type' do
+  describe 'with sunspot_disable_ancestors' do
     it 'should index non-multivalued field with newlines' do
       expect do
-        Sunspot.index!(PostWithSunspotType.new(title: "A\nTitle"))
+        Sunspot.index!(PostWithDisableAncestors.new(title: "A\nTitle"))
       end.not_to raise_error
     end
 
     it 'should correctly remove by model instance' do
-      post = PostWithSunspotType.new(title: 'test post')
+      post = PostWithDisableAncestors.new(title: 'test post')
       Sunspot.index!(post)
       Sunspot.remove!(post)
-      expect(Sunspot.search(PostWithSunspotType) { with(:title, 'test post') }.results).to be_empty
+      expect(Sunspot.search(PostWithDisableAncestors) { with(:title, 'test post') }.results).to be_empty
     end
 
     it 'should correctly delete by ID' do
-      post = PostWithSunspotType.new(title: 'test post')
+      post = PostWithDisableAncestors.new(title: 'test post')
       Sunspot.index!(post)
-      Sunspot.remove_by_id!(PostWithSunspotType, post.id)
-      expect(Sunspot.search(PostWithSunspotType) { with(:title, 'test post') }.results).to be_empty
+      Sunspot.remove_by_id!(PostWithDisableAncestors, post.id)
+      expect(Sunspot.search(PostWithDisableAncestors) { with(:title, 'test post') }.results).to be_empty
     end
 
     it 'removes documents by query' do
       Sunspot.remove_all!
-      posts = [PostWithSunspotType.new(title: 'birds'), PostWithSunspotType.new(title: 'monkeys')]
+      posts = [PostWithDisableAncestors.new(title: 'birds'), PostWithDisableAncestors.new(title: 'monkeys')]
       Sunspot.index!(posts)
 
-      Sunspot.remove!(PostWithSunspotType) do
+      Sunspot.remove!(PostWithDisableAncestors) do
         with(:title, 'birds')
       end
-      expect(Sunspot.search(PostWithSunspotType).results.size).to eq(1)
+      expect(Sunspot.search(PostWithDisableAncestors).results.size).to eq(1)
     end
 
     describe 'in batches' do
-      let(:post_1) { PostWithSunspotType.new title: 'A tittle' }
-      let(:post_2) { PostWithSunspotType.new title: 'Another title' }
+      let(:post_1) { PostWithDisableAncestors.new title: 'A tittle' }
+      let(:post_2) { PostWithDisableAncestors.new title: 'Another title' }
 
       describe 'nested' do
         let(:a_nested_batch) do
