@@ -37,43 +37,43 @@ class PostWithSunspotType < SuperClass
 
   private
 
-  attr_writer :category_ids, :custom_string, :custom_underscored_string, :custom_fl, :custom_time, :custom_boolean
+    attr_writer :category_ids, :custom_string, :custom_underscored_string, :custom_fl, :custom_time, :custom_boolean
 end
 
-Sunspot.setup(Post) do
-  text :title, :boost => 2
-  text :text_array, :boost => 3 do
+Sunspot.setup(PostWithSunspotType) do
+  text :title, boost: 2
+  text :text_array, boost: 3 do
     [title, title]
   end
-  text :body, :stored => true, :more_like_this => true
+  text :body, stored: true, more_like_this: true
   text :backwards_title do
     title.reverse if title
   end
-  text :tags, :more_like_this => true
-  string :title, :stored => true
+  text :tags, more_like_this: true
+  string :title, stored: true
   string :author_name
-  integer :blog_id, :references => Blog
-  integer :category_ids, :multiple => true
-  float :average_rating, :using => :ratings_average, :trie => true
-  time :published_at, :trie => true
+  integer :blog_id, references: Blog
+  integer :category_ids, multiple: true
+  float :average_rating, using: :ratings_average, trie: true
+  time :published_at, trie: true
   date :expire_date
   date_range :featured_for
-  boolean :featured, :using => :featured?, :stored => true
+  boolean :featured, using: :featured?, stored: true
   string :sort_title do
     title.downcase.sub(/^(a|an|the)\W+/, '') if title
   end
   integer :primary_category_id do |post|
     post.category_ids.first
   end
-  time :last_indexed_at, :stored => true do
+  time :last_indexed_at, stored: true do
     Time.now
   end
   location :coordinates
   latlon(:coordinates_new) { coordinates }
 
-  dynamic_string :custom_string, :stored => true
+  dynamic_string :custom_string, stored: true
   dynamic_string :custom_underscored_string, separator: '__'
-  dynamic_float :custom_float, :multiple => true, :using => :custom_fl
+  dynamic_float :custom_float, multiple: true, using: :custom_fl
   dynamic_integer :custom_integer do
     category_ids.inject({}) do |hash, category_id|
       hash.merge(category_id => 1)
@@ -88,15 +88,15 @@ Sunspot.setup(Post) do
     end
   end
 
-  string :legacy, :as => :legacy_field_s do
+  string :legacy, as: :legacy_field_s do
     "legacy #{title}"
   end
 
-  string :legacy_array, :as => :legacy_array_field_sm, :multiple => true do
+  string :legacy_array, as: :legacy_array_field_sm, multiple: true do
     ['first string', 'second string']
   end
 
-  string :tag_list, :multiple => true, :stored => true do
+  string :tag_list, multiple: true, stored: true do
     tags
   end
 end
