@@ -163,11 +163,18 @@ module Sunspot
         if Adapters::InstanceAdapter.for(clazz)
           RSolr::Xml::Document.new(
             id: Adapters::InstanceAdapter.index_id_for(clazz.name, id),
-            type: sunspot_type(model)
+            type: sunspot_type(clazz)
           )
         end
       end
 
+      #
+      # Store on type field the class name we want to search for
+      #
+      # @param [Class/Object] element
+      #
+      # @return [Array[Strings]]
+      #
       def sunspot_type(element)
         clazz = element.is_a?(Class) ? element : element.class
         if clazz.respond_to?(:sunspot_type)
