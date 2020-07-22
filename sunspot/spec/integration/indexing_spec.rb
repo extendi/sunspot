@@ -1,6 +1,6 @@
 require File.expand_path('../spec_helper', File.dirname(__FILE__))
 
-contenxt 'indexing' do
+context 'indexing' do
 
   describe 'without sunspot_type' do
     it 'should index non-multivalued field with newlines' do
