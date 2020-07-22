@@ -29,7 +29,7 @@ module Sunspot
       def superclasses_for(clazz)
         if clazz.respond_to?(:sunspot_type)
           raise StandardError.new('sunspot_type must be an array of strings') unless clazz.sunspot_type.is_a?(Array)
-          Struct.new(:name).new(clazz.sunspot_type)
+          clazz.sunspot_type.map { |t| Struct.new(:name).new(t) }
         else
           superclasses = [clazz]
           superclasses << (clazz = clazz.superclass) while clazz.superclass != Object
