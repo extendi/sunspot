@@ -27,9 +27,14 @@ module Sunspot
       # Array:: Collection containing class and its superclasses
       #
       def superclasses_for(clazz)
-        superclasses = [clazz]
-        superclasses << (clazz = clazz.superclass) while clazz.superclass != Object
-        superclasses
+        if clazz.respond_to?(:sunspot_type)
+          raise StandardError.new('sunspot_type must be an array of strings') unless clazz.sunspot_type.is_a?(Array)
+          clazz.sunspot_type
+        else
+          superclasses = [clazz]
+          superclasses << (clazz = clazz.superclass) while clazz.superclass != Object
+          superclasses
+        end
       end
 
       #
@@ -209,7 +214,7 @@ module Sunspot
           end
           Sunspot::Query::DateFieldJsonFacet.new(field, options, setup)
         elsif options[:range]
-          unless [Sunspot::Type::TimeType, Sunspot::Type::FloatType, Sunspot::Type::IntegerType ].find{|type| field.type.is_a?(type)}
+          unless [Sunspot::Type::TimeType, Sunspot::Type::FloatType, Sunspot::Type::IntegerType ].find { |type| field.type.is_a?(type) }
             raise(
               ArgumentError,
               ':range can only be specified for date or numeric fields'
@@ -223,55 +228,55 @@ module Sunspot
 
       private
 
-      def parse_block_join_json_facet(field_name, options, setup)
-        facet_op = options[:block_join]
-        inner_setup = Sunspot::Setup.for(facet_op[:type])
-        field = inner_setup.field(field_name)
-        Sunspot::Query::BlockJoin::JsonFacet.new(
-          field,
-          { op: facet_op[:op] }.merge!(options),
-          inner_setup,
-          facet_op[:query]
-        )
-      end
-
-      #
-      # Deep merge two hashes into a third hash, using rules that produce nice
-      # merged parameter hashes. The rules are as follows, for a given key:
-      #
-      # * If only one hash has a value, or if both hashes have the same value,
-      #   just use the value.
-      # * If either of the values is not a hash, create arrays out of both
-      #   values and concatenate them.
-      # * Otherwise, deep merge the two values (which are both hashes)
-      #
-      # ==== Parameters
-      #
-      # destination<Hash>:: Hash into which to perform the merge
-      # left<Hash>:: One hash to merge
-      # right<Hash>:: The other hash to merge
-      #
-      # ==== Returns
-      #
-      # Hash:: destination
-      #
-      def deep_merge_into(destination, left, right)
-        left.each_pair do |name, left_value|
-          right_value = right[name] if right
-          destination[name] =
-            if right_value.nil? || left_value == right_value
-              left_value
-            elsif !left_value.respond_to?(:each_pair) || !right_value.respond_to?(:each_pair)
-              Array(left_value) + Array(right_value)
-            else
-              merged_value = {}
-              deep_merge_into(merged_value, left_value, right_value)
-            end
+        def parse_block_join_json_facet(field_name, options, setup)
+          facet_op = options[:block_join]
+          inner_setup = Sunspot::Setup.for(facet_op[:type])
+          field = inner_setup.field(field_name)
+          Sunspot::Query::BlockJoin::JsonFacet.new(
+            field,
+            { op: facet_op[:op] }.merge!(options),
+            inner_setup,
+            facet_op[:query]
+          )
         end
-        left_keys = Set.new(left.keys)
-        destination.merge!(right.reject { |k, v| left_keys.include?(k) })
-        destination
-      end
+
+        #
+        # Deep merge two hashes into a third hash, using rules that produce nice
+        # merged parameter hashes. The rules are as follows, for a given key:
+        #
+        # * If only one hash has a value, or if both hashes have the same value,
+        #   just use the value.
+        # * If either of the values is not a hash, create arrays out of both
+        #   values and concatenate them.
+        # * Otherwise, deep merge the two values (which are both hashes)
+        #
+        # ==== Parameters
+        #
+        # destination<Hash>:: Hash into which to perform the merge
+        # left<Hash>:: One hash to merge
+        # right<Hash>:: The other hash to merge
+        #
+        # ==== Returns
+        #
+        # Hash:: destination
+        #
+        def deep_merge_into(destination, left, right)
+          left.each_pair do |name, left_value|
+            right_value = right[name] if right
+            destination[name] =
+              if right_value.nil? || left_value == right_value
+                left_value
+              elsif !left_value.respond_to?(:each_pair) || !right_value.respond_to?(:each_pair)
+                Array(left_value) + Array(right_value)
+              else
+                merged_value = {}
+                deep_merge_into(merged_value, left_value, right_value)
+              end
+          end
+          left_keys = Set.new(left.keys)
+          destination.merge!(right.reject { |k, v| left_keys.include?(k) })
+          destination
+        end
     end
 
     Coordinates = Struct.new(:lat, :lng)
@@ -280,7 +285,7 @@ module Sunspot
       class <<self
         def instance_eval_with_context(receiver, &block)
           calling_context = eval('self', block.binding)
-          if parent_calling_context = calling_context.instance_eval{@__calling_context__ if defined?(@__calling_context__)}
+          if parent_calling_context = calling_context.instance_eval { @__calling_context__ if defined?(@__calling_context__) }
             calling_context = parent_calling_context
           end
           new(receiver, calling_context).instance_eval(&block)

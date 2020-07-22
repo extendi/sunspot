@@ -155,7 +155,7 @@ module Sunspot
       def document_for_full_update(model)
         RSolr::Xml::Document.new(
           id: Adapters::InstanceAdapter.adapt(model).index_id,
-          type: sunspot_type(model)
+          type: Util.superclasses_for(model.class).map(&:name)
         )
       end
 
@@ -163,25 +163,8 @@ module Sunspot
         if Adapters::InstanceAdapter.for(clazz)
           RSolr::Xml::Document.new(
             id: Adapters::InstanceAdapter.index_id_for(clazz.name, id),
-            type: sunspot_type(clazz)
+            type: Util.superclasses_for(clazz).map(&:name)
           )
-        end
-      end
-
-      #
-      # Store on type field the class name we want to search for
-      #
-      # @param [Class/Object] element
-      #
-      # @return [Array[Strings]]
-      #
-      def sunspot_type(element)
-        clazz = element.is_a?(Class) ? element : element.class
-        if clazz.respond_to?(:sunspot_type)
-          raise StandardError.new('sunspot_type must be an array of strings') unless clazz.sunspot_type.is_a?(Array)
-          clazz.sunspot_type
-        else
-          Util.superclasses_for(clazz).map(&:name)
         end
       end
 
