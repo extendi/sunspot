@@ -106,3 +106,9 @@ class PhotoPostWithDisableAncestors < PostWithDisableAncestors
     true
   end
 end
+
+class VideoPost < PostWithDisableAncestors
+  def self.sunspot_disable_ancestors
+    false
+  end
+end

@@ -27,8 +27,7 @@ module Sunspot
       # Array:: Collection containing class and its superclasses
       #
       def superclasses_for(clazz)
-        if clazz.respond_to?(:sunspot_disable_ancestors)
-          raise StandardError.new('sunspot_disable_ancestors must be true') unless clazz.sunspot_disable_ancestors.is_a?(TrueClass)
+        if clazz.respond_to?(:sunspot_disable_ancestors) && clazz.sunspot_disable_ancestors.is_a?(TrueClass)
           superclasses = [clazz]
         else
           superclasses = [clazz]
