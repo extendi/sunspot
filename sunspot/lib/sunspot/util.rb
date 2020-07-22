@@ -16,7 +16,7 @@ module Sunspot
 
       #
       # Get all of the superclasses for a given class, including the class
-      # itself.
+      # itself, if sunspot_type defined returns it.
       #
       # ==== Parameters
       #
