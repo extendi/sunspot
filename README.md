@@ -695,10 +695,10 @@ in the query.
 ```ruby
 # Search for all books with specified title and facets
 # on the timestamp of reviews.
-# An additional filter on children can be specified inside the on_child operator. 
+# An additional filter on children can be specified inside the on_child operator.
 Sunspot.search(Book) do
   fulltext 'awesome book title', fields: [:title]
-  
+
   json_facet :review_date, block_join: (on_child(Review) do
     with(:review_date).greater_than(DateTime.parse('2015-01-01T00:00:00Z'))
   end)
@@ -715,9 +715,9 @@ Faceting is performed on parents of the children found in the query.
 # Perform faceting on the book category.
 Sunspot.search(Review) do
   with :author, 'yonik'
-  
+
   # An empty block means no additional filters: takes all parents
-  # of the selected children. 
+  # of the selected children.
   json_facet :category, block_join: on_parent(Book) {}
 end
 ```
@@ -1114,12 +1114,12 @@ class Post < ActiveRecord::Base
 end
 ```
 
-As a result, all `Blogs` and `Posts` will be stored on a single shard. But 
+As a result, all `Blogs` and `Posts` will be stored on a single shard. But
 since other `Blogs` will generate other prefixes Solr will distribute them
 evenly across the available shards.
 
-If you have large collections that you want to use joins with and still want to 
-utilize sharding instead of storing everything on a single shard, it's also 
+If you have large collections that you want to use joins with and still want to
+utilize sharding instead of storing everything on a single shard, it's also
 possible to only ensure a single `Blog` and its associated `Posts` stored on
 a signle shard, while the whole collections could still be distributed across
 multiple shards. The thing is that Solr **can** do distributed joins across
@@ -1150,15 +1150,15 @@ class Post < ActiveRecord::Base
 end
 ```
 
-This way a single `Blog` and its `Ports` have the same ID prefix and will go 
+This way a single `Blog` and its `Ports` have the same ID prefix and will go
 to a single Shard.
 
 *NOTE:* Solr developers also recommend adjusting replication factor so every shard
 node contains replicas of all shards in the cluster. If you have 4 shards on separate
 nodes each of these nodes should have 4 replicas (one replica of each shard).
 
-More information and usage examples could be found here: 
-https://lucene.apache.org/solr/guide/6_6/shards-and-indexing-data-in-solrcloud.html  
+More information and usage examples could be found here:
+https://lucene.apache.org/solr/guide/6_6/shards-and-indexing-data-in-solrcloud.html
 
 ### Highlighting
 
@@ -1268,7 +1268,7 @@ from 1984.
 ```ruby
 search = Sunspot.search(Book) do
   with(:pub_year).greater_than(1983)
-  
+
   # The :on parameter is needed here!
   # It must match the type specified in :block_join
   stats :stars, sort: :avg, on: Review do
@@ -1282,7 +1282,7 @@ end
 Solr will execute the query, selecting all `Book`s with `pub_year` from 1984.
 
 Then, facets on the `author_name` values present in the `Review` documents
-that are children of the `Book`s found.  
+that are children of the `Book`s found.
 In this case, we'll have just one facet.
 
 At last, executes statistics on the generated facet.
@@ -1485,7 +1485,7 @@ contents in Solr.
 
 Stored fields allow data to be retrieved without also hitting the
 underlying database (usually an SQL server).
-The store option using DocValues as stored is not like having the value really stored in the index, if you want to use   
+The store option using DocValues as stored is not like having the value really stored in the index, if you want to use
 highlighting and more like this queries and atomic updates, remember to change the schema.xml according to this.
 
 Stored fields (stored="true" in the schema) come at some performance cost in the Solr index, so use
@@ -1598,7 +1598,7 @@ Sunspot.session = Sunspot::SessionProxy::ThreadLocalSessionProxy.new
 
 Within a Rails app, to ensure your `config/sunspot.yml` settings are properly setup in this session you can use  [Sunspot::Rails.build_session](http://sunspot.github.io/sunspot/docs/Sunspot/Rails.html#build_session-class_method) to mirror the normal Sunspot setup process:
 ```ruby
-  session = Sunspot::Rails.build_session  Sunspot::Rails::Configuration.new
+  session = Sunspot::Rails.build_session Sunspot::Rails::Configuration.new
   Sunspot.session = session
 ```
 

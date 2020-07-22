@@ -1,7 +1,7 @@
 require 'sunspot/batcher'
 
 module Sunspot
-  # 
+  #
   # This class presents a service for adding, updating, and removing data
   # from the Solr index. An Indexer instance is associated with a particular
   # setup, and thus is capable of indexing instances of a certain class (and its
@@ -12,7 +12,7 @@ module Sunspot
       @connection = connection
     end
 
-    # 
+    #
     # Construct a representation of the model for indexing and send it to the
     # connection for indexing
     #
@@ -35,7 +35,7 @@ module Sunspot
     # updates<Hash>:: hash of updates where keys are model ids
     #                 and values are hash with property name/values to be updated
     #
-    def add_atomic_update(clazz, updates={})
+    def add_atomic_update(clazz, updates = {})
       documents = updates.map { |id, m| prepare_atomic_update(clazz, id, m) }
       add_batch_documents(documents)
     end
@@ -93,109 +93,109 @@ module Sunspot
 
     private
 
-    def batcher
-      @batcher ||= Batcher.new
-    end
+      def batcher
+        @batcher ||= Batcher.new
+      end
 
-    #
-    # Convert documents into hash of indexed properties
-    #
-    def prepare_full_update(model)
-      document = document_for_full_update(model)
-      setup = setup_for_object(model)
-      if boost = setup.document_boost_for(model)
-        document.attrs[:boost] = boost
+      #
+      # Convert documents into hash of indexed properties
+      #
+      def prepare_full_update(model)
+        document = document_for_full_update(model)
+        setup = setup_for_object(model)
+        if boost = setup.document_boost_for(model)
+          document.attrs[:boost] = boost
+        end
+        setup.all_field_factories.each do |field_factory|
+          field_factory.populate_document(document, model)
+        end
+        unless setup.child_field_factory.nil?
+          setup.child_field_factory.populate_document(
+            document,
+            model,
+            adapter: ->(child_model) { prepare_full_update(child_model) }
+          )
+        end
+        document
       end
-      setup.all_field_factories.each do |field_factory|
-        field_factory.populate_document(document, model)
-      end
-      unless setup.child_field_factory.nil?
-        setup.child_field_factory.populate_document(
-          document,
-          model,
-          adapter: ->(child_model) { prepare_full_update(child_model) }
-        )
-      end
-      document
-    end
 
-    def prepare_atomic_update(clazz, id, updates = {})
-      document = document_for_atomic_update(clazz, id)
-      setup = setup_for_class(clazz)
-      # Child documents must be re-indexed with parent at each update,
-      # otherwise Solr would discard them.
-      unless setup.child_field_factory.nil?
-        raise 'Objects with child documents can\'t perform atomic updates'
+      def prepare_atomic_update(clazz, id, updates = {})
+        document = document_for_atomic_update(clazz, id)
+        setup = setup_for_class(clazz)
+        # Child documents must be re-indexed with parent at each update,
+        # otherwise Solr would discard them.
+        unless setup.child_field_factory.nil?
+          raise 'Objects with child documents can\'t perform atomic updates'
+        end
+        setup.all_field_factories.each do |field_factory|
+          if updates.has_key?(field_factory.name)
+            field_factory.populate_document(document, nil, value: updates[field_factory.name], update: :set)
+          end
+        end
+        document
       end
-      setup.all_field_factories.each do |field_factory|
-        if updates.has_key?(field_factory.name)
-          field_factory.populate_document(document, nil, value: updates[field_factory.name], update: :set)
+
+      def add_documents(documents)
+        @connection.add(documents)
+      end
+
+      def add_batch_documents(documents)
+        if batcher.batching?
+          batcher.concat(documents)
+        else
+          add_documents(documents)
         end
       end
-      document
-    end
 
-    def add_documents(documents)
-      @connection.add(documents)
-    end
-
-    def add_batch_documents(documents)
-      if batcher.batching?
-        batcher.concat(documents)
-      else
-        add_documents(documents)
-      end
-    end
-
-    #
-    # All indexed documents index and store the +id+ and +type+ fields.
-    # These methods construct the document hash containing those key-value
-    # pairs.
-    #
-    def document_for_full_update(model)
-      RSolr::Xml::Document.new(
-        id: Adapters::InstanceAdapter.adapt(model).index_id,
-        type: Util.superclasses_for(model.class).map(&:name)
-      )
-    end
-
-    def document_for_atomic_update(clazz, id)
-      if Adapters::InstanceAdapter.for(clazz)
+      #
+      # All indexed documents index and store the +id+ and +type+ fields.
+      # These methods construct the document hash containing those key-value
+      # pairs.
+      #
+      def document_for_full_update(model)
         RSolr::Xml::Document.new(
-          id: Adapters::InstanceAdapter.index_id_for(clazz.name, id),
-          type: Util.superclasses_for(clazz).map(&:name)
+          id: Adapters::InstanceAdapter.adapt(model).index_id,
+          type: Util.superclasses_for(model.class).map(&:name)
         )
       end
-    end
 
-    #
-    # Get the Setup object for the given object's class.
-    #
-    # ==== Parameters
-    #
-    # object<Object>:: The object whose setup is to be retrieved
-    #
-    # ==== Returns
-    #
-    # Sunspot::Setup:: The setup for the object's class
-    #
-    def setup_for_object(object)
-      setup_for_class(object.class)
-    end
+      def document_for_atomic_update(clazz, id)
+        if Adapters::InstanceAdapter.for(clazz)
+          RSolr::Xml::Document.new(
+            id: Adapters::InstanceAdapter.index_id_for(clazz.name, id),
+            type: Util.superclasses_for(clazz).map(&:name)
+          )
+        end
+      end
 
-    #
-    # Get the Setup object for the given class.
-    #
-    # ==== Parameters
-    #
-    # clazz<Class>:: The class whose setup is to be retrieved
-    #
-    # ==== Returns
-    #
-    # Sunspot::Setup:: The setup for the class
-    #
-    def setup_for_class(clazz)
-      Setup.for(clazz) || raise(NoSetupError, "Sunspot is not configured for #{clazz.inspect}")
-    end
+      #
+      # Get the Setup object for the given object's class.
+      #
+      # ==== Parameters
+      #
+      # object<Object>:: The object whose setup is to be retrieved
+      #
+      # ==== Returns
+      #
+      # Sunspot::Setup:: The setup for the object's class
+      #
+      def setup_for_object(object)
+        setup_for_class(object.class)
+      end
+
+      #
+      # Get the Setup object for the given class.
+      #
+      # ==== Parameters
+      #
+      # clazz<Class>:: The class whose setup is to be retrieved
+      #
+      # ==== Returns
+      #
+      # Sunspot::Setup:: The setup for the class
+      #
+      def setup_for_class(clazz)
+        Setup.for(clazz) || raise(NoSetupError, "Sunspot is not configured for #{clazz.inspect}")
+      end
   end
 end
