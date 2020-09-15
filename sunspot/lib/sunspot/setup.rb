@@ -11,7 +11,7 @@ module Sunspot
 
     def initialize(clazz)
       @class_object_id = clazz.object_id
-      @class_name = clazz.name
+      @class_name = clazz.defined?(:susnpot_class_name) ? clazz.susnpot_class_name : clazz.name
       @field_factories, @text_field_factories, @dynamic_field_factories,
         @field_factories_cache, @text_field_factories_cache,
         @dynamic_field_factories_cache = *Array.new(6) { Hash.new }
