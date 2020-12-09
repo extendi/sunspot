@@ -87,35 +87,70 @@ module Sunspot
 
     private
 
-      # Remove the host from @faulty_host cache that are too
-      def clean_faulty_state
-        @faulty_hosts = @faulty_hosts.select do |_k, v|
-          (Time.now - v[1]).to_i < 3600
+      #
+      # Return true if an host is in fault state.
+      # An host is in fault state if and only if:
+      # - #number of fault >= 3 TODO ADJUST
+      # - time in fault state is 1h
+      #
+      # @return [Boolean]
+      #
+      def faulty?(hostname)
+        faulty_host_cache_get(hostname).first >= 3
+      end
+
+      def reset_counter_faulty(hostname)
+        faulty_host_cache_del(hostname)
+      end
+
+      def update_faulty_host(hostname)
+        faulty_host_cache_set(hostname)
+        logger.error "Putting #{hostname} in fault state" if faulty?(hostname)
+      end
+
+      def faulty_host_cache_get(hostname)
+        if defined?(::Rails.cache)
+          Rails.cache.read(hostname_key(hostname)) || 0
+        else
+          @faulty_hosts[hostname] || [0, Time.now]
+        end
+      end
+
+      def faulty_host_cache_set(hostname, expires_in: 1.hour.to_i)
+        if defined?(::Rails.cache)
+          status = faulty_host_cache_get(hostname_key(hostname))
+          status += 1
+          Rails.cache.write(hostname_key(hostname), status, expires_in: expires_in)
+        else
+          @faulty_hosts ||= {}
+          @faulty_hosts[hostname] ||= [0, Time.now]
+          @faulty_hosts[hostname][0] += 1
+          @faulty_hosts[hostname][1] = Time.now
+        end
+      end
+
+      def faulty_host_cache_del(hostname)
+        if defined?(::Rails.cache)
+          Rails.cache.delete(hostname_key(hostname))
+        else
+          @faulty_hosts.delete(hostname)
         end
       end
 
       #
-      # Return true if an host is in fault state
-      # An host is in fault state if and only if:
-      # - #number of fault >= 3
-      # - time in fault state is 1h
+      # Remove the host from @faulty_host cache that are too old.
+      # Does not do anything if Rails.cache is used
       #
-      def faulty?(hostname)
-        @faulty_hosts.key?(hostname) &&
-          @faulty_hosts[hostname].first >= 3
+      def clean_faulty_state
+        unless defined?(::Rails.cache)
+          @faulty_hosts.select! do |_k, v|
+            (Time.now - v[1]).to_i < 3600
+          end
+        end
       end
 
-      def reset_counter_faulty(hostname)
-        @faulty_hosts.delete(hostname)
-      end
-
-      def update_faulty_host(hostname)
-        @faulty_hosts ||= {}
-        @faulty_hosts[hostname] ||= [0, Time.now]
-        @faulty_hosts[hostname][0] += 1
-        @faulty_hosts[hostname][1]  = Time.now
-
-        logger.error "Putting #{hostname} in fault state" if faulty?(hostname)
+      def hostname_key(hostname)
+        "#{Digest::MD5.hexdigest(hostname)[0..9]}_CACHE_FAULTY_NODES"
       end
 
       def logger

@@ -439,6 +439,8 @@ module Sunspot #:nodoc:
             else
               {}
             end
+          rescue
+            {}
           end
       end
 
