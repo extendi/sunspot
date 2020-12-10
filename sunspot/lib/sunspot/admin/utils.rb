@@ -62,7 +62,7 @@ module Sunspot
         REDIS_CLUSTER_STATUS_DB = 5
 
         def redis_client
-          if defined?(::Rails.cache)
+          if defined?(::Rails.cache) && Rails.cache.respond_to?(:redis_options)
             opts = ::Rails.cache.redis_options.merge({
               db: REDIS_CLUSTER_STATUS_DB,
               compress: true
