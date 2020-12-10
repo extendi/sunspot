@@ -64,7 +64,9 @@ module Sunspot
         logger.error "Error connecting to Solr #{e.message}"
 
         # update the map of faulty hosts
-        update_faulty_host(@current_hostname)
+        if server_fault_exception?(e)
+          update_faulty_host(@current_hostname)
+        end
 
         # clean host in fault state
         clean_faulty_state
@@ -88,6 +90,16 @@ module Sunspot
     private
 
       #
+      # Return true for the exceptions that indicate that the node is down or not responding.
+      #
+      # @return [Boolean]
+      #
+      def server_fault_exception?(e)
+        e.is_a?(RSolr::Error::ConnectionRefused) ||
+          (e.is_a?(RSolr::Error::Http) && e.response[:status].to_i >= 500)
+      end
+
+      #
       # Return true if an host is in fault state.
       # An host is in fault state if and only if:
       # - #number of fault >= 3 TODO ADJUST
@@ -104,34 +116,38 @@ module Sunspot
       end
 
       def update_faulty_host(hostname)
-        faulty_host_cache_set(hostname)
+        cached = faulty_host_cache_set(hostname)
         logger.error "Putting #{hostname} in fault state" if faulty?(hostname)
+        cached
       end
 
       def faulty_host_cache_get(hostname)
-        if defined?(::Rails.cache)
-          Rails.cache.read(hostname_key(hostname)) || 0
+        if Sunspot::Admin::Utils.redis_client
+          Sunspot::Admin::Utils.redis_client.get(hostname_key(hostname)) || [0, Time.now]
         else
           @faulty_hosts[hostname] || [0, Time.now]
         end
       end
 
       def faulty_host_cache_set(hostname, expires_in: 1.hour.to_i)
-        if defined?(::Rails.cache)
-          status = faulty_host_cache_get(hostname_key(hostname))
-          status += 1
-          Rails.cache.write(hostname_key(hostname), status, expires_in: expires_in)
+        if Sunspot::Admin::Utils.redis_client
+          status = faulty_host_cache_get(hostname)
+          status[0] += 1
+          status[1] = Time.now
+          Sunspot::Admin::Utils.redis_client.set(hostname_key(hostname), status, expires_in: expires_in)
+          status
         else
           @faulty_hosts ||= {}
           @faulty_hosts[hostname] ||= [0, Time.now]
           @faulty_hosts[hostname][0] += 1
           @faulty_hosts[hostname][1] = Time.now
+          @faulty_hosts[hostname]
         end
       end
 
       def faulty_host_cache_del(hostname)
-        if defined?(::Rails.cache)
-          Rails.cache.delete(hostname_key(hostname))
+        if Sunspot::Admin::Utils.redis_client
+          Sunspot::Admin::Utils.redis_client.del(hostname_key(hostname))
         else
           @faulty_hosts.delete(hostname)
         end
@@ -142,7 +158,7 @@ module Sunspot
       # Does not do anything if Rails.cache is used
       #
       def clean_faulty_state
-        unless defined?(::Rails.cache)
+        unless Sunspot::Admin::Utils.redis_client
           @faulty_hosts.select! do |_k, v|
             (Time.now - v[1]).to_i < 3600
           end

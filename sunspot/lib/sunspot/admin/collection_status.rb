@@ -62,9 +62,8 @@ module Sunspot
           }
 
           # destroy cache for that collection
-          Utils.remove_key_from_cache(
-            calc_key_collection_stats(collection_name)
-          )
+          Utils.cache_del(collection_key(collection_name))
+
           response
         rescue RSolr::Error::Http => _e
           nil
@@ -96,7 +95,7 @@ module Sunspot
       # @return [Hash] stats info
       #
       def retrieve_stats_for(collection_name:)
-        Utils.with_cache(force: false, key: calc_key_collection_stats(collection_name), default: {}, expires_in: 300) do
+        Utils.with_cache(force: false, key: collection_key(collection_name), default: {}, expires_in: 300) do
           uri = connection.uri
           c = RSolr.connect(url: "http://#{uri.host}:#{uri.port}/solr/#{collection_name}")
           begin
@@ -135,7 +134,7 @@ module Sunspot
           .compact
       end
 
-      def calc_key_collection_stats(collection_name)
+      def collection_key(collection_name)
         "CACHE_SOLR_COLLECTION_STATS_#{collection_name}"
       end
     end
