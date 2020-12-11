@@ -160,7 +160,7 @@ module Sunspot
       def clean_faulty_state
         unless Sunspot::Admin::Utils.redis_client
           @faulty_hosts.select! do |_k, v|
-            (Time.now - v[1]).to_i < 3600
+            (Time.now - v[1]).to_i < 1.hour.to_i
           end
         end
       end
