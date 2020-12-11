@@ -94,10 +94,7 @@ module Sunspot
           collections = @solr_collections
         else
           collections = @fn_collection_filter.call(
-            calculate_search_collections(
-              date_from: @date_from,
-              date_to: @date_to
-            )
+            calculate_search_collections(date_from: @date_from, date_to: @date_to)
           )
         end
         filter_with_solr_eq(collections)

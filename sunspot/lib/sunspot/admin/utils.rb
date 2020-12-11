@@ -11,11 +11,9 @@ module Sunspot
           return default if retries >= max_retries
 
           r =
-            if force
-              yield
-            elsif redis_client
+            if redis_client
               cached = redis_client.get(key)
-              if cached.nil?
+              if cached.nil? || force
                 cached = yield
                 redis_client.set(key, cached, expires_in: expires_in)
               end
@@ -23,7 +21,7 @@ module Sunspot
             else
               @cached ||= {}
               time = Time.now
-              if !@cached[key].present? || (time - (@cached[:time] || time)) > expires_in
+              if @cached[key].nil? || force || (time - (@cached[:time] || time)) > expires_in
                 @cached[key] = yield
                 @cached[:time] = time
               end
