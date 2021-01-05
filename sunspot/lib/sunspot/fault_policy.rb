@@ -61,7 +61,7 @@ module Sunspot
         # reset counter of faulty_host for the current host
         reset_counter_faulty(@current_hostname)
       rescue RSolr::Error::ConnectionRefused, RSolr::Error::Http => e
-        logger.error "Error connecting to Solr #{e.message}"
+        # logger.warn msg: 'Error connecting to Solr', 'exception.message': e.message, 'exception.backtrace': e.backtrace.join("\n")
 
         # update the map of faulty hosts
         if server_fault_exception?(e)
@@ -74,16 +74,16 @@ module Sunspot
         if retries < max_retries
           retries += 1
           sleep_for = 2**retries
-          logger.error "Retrying Solr connection in #{sleep_for} seconds... (#{retries} of #{max_retries})"
+          # logger.warn msg: 'Retrying Solr connection', info: { sleep_for: sleep_for, retries: retries, max_retries: max_retries }
           sleep(sleep_for)
           retry
         else
-          logger.error 'Reached max Solr connection retry count.'
+          # logger.error msg: 'Reached max Solr connection retry count', 'exception.message': e.message, 'exception.backtrace': e.backtrace.join("\n")
           raise e
         end
       end
     rescue StandardError => e
-      logger.error "Exception: #{e.inspect}"
+      # logger.error msg: 'Sunspot::FaultPolicy.with_exception_handling - generic error', 'exception.message': e.message, 'exception.backtrace': e.backtrace.join("\n")
       raise e
     end
 
@@ -117,7 +117,7 @@ module Sunspot
 
       def update_faulty_host(hostname)
         cached = faulty_host_cache_set(hostname)
-        logger.error "Putting #{hostname} in fault state" if faulty?(hostname)
+        # logger.warn msg: "Updating faulty host", info: { hostname: hostname } if faulty?(hostname)
         cached
       end
 
