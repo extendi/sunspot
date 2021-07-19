@@ -30,7 +30,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'pr_geohash', '~>1.0'
   s.add_runtime_dependency 'rsolr', '>= 1.1.1', '< 3'
   s.add_runtime_dependency 'semantic', '1.6.1'
-  s.add_runtime_dependency 'terminal-table', '~> 1.8'
+  s.add_runtime_dependency 'terminal-table', '~> 3'
   s.add_runtime_dependency 'redis-store', '~> 1.8', '>= 1.8.2'
 
   s.add_development_dependency 'appraisal', '2.2.0'
