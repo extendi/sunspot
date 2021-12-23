@@ -339,7 +339,7 @@ module Sunspot
 
         def filter_with_solr_eq(collections)
           collections = (collections || [])
-          solr.collections.present? ? collections & solr.collection : collections
+          solr.collections.present? ? collections & solr.collections : collections
         end
 
         def calculate_search_collections(date_from:, date_to:)
