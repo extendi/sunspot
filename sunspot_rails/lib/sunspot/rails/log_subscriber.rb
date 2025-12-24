@@ -1,6 +1,8 @@
 module Sunspot
   module Rails
     class LogSubscriber < ActiveSupport::LogSubscriber
+      BOLD  = "\e[1m".freeze unless const_defined?(:BOLD)
+
       def self.runtime=(value)
         Thread.current["sorl_runtime"] = value
       end
