@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Sunspot
   module DSL
     #
@@ -286,7 +288,7 @@ module Sunspot
                 search_facet = @search.add_date_facet(field, options)
                 Sunspot::Query::DateFieldFacet.new(field, options)
               elsif options[:range]
-                unless [Sunspot::Type::TimeType, Sunspot::Type::FloatType, Sunspot::Type::IntegerType ].inject(false){|res,type| res || field.type.is_a?(type)}
+                unless [Sunspot::Type::TimeType, Sunspot::Type::FloatType, Sunspot::Type::IntegerType ].inject(false) { |res, type| res || field.type.is_a?(type) }
                   raise(
                     ArgumentError,
                     ':range can only be specified for date or numeric fields'
@@ -323,7 +325,7 @@ module Sunspot
               else
                 raise(
                   ArgumentError,
-                  "Allowed values for :extra are :any and :none"
+                  'Allowed values for :extra are :any and :none'
                 )
               end
               search_facet.add_row(extra, extra_facet.to_boolean_phrase)
@@ -390,7 +392,7 @@ module Sunspot
       #   :asc or :desc
       def order_by_function(*args)
         @query.add_sort(
-          Sunspot::Query::Sort::FunctionSort.new(@setup,args)
+          Sunspot::Query::Sort::FunctionSort.new(@setup, args)
         )
       end
     end

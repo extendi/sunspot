@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 module Sunspot
   module Search
     class FieldJsonFacet
-
       attr_reader :name
 
       def initialize(field, search, options)
@@ -26,7 +27,6 @@ module Sunspot
             end
             rows
           end
-
       end
     end
   end

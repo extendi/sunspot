@@ -55,16 +55,18 @@ module Sunspot
     #
     def with_exception_handling
       retries = 0
-      max_retries = 3
+      max_retries = @max_retries || 3
       begin
         yield
         # reset counter of faulty_host for the current host
         reset_counter_faulty(@current_hostname)
       rescue RSolr::Error::ConnectionRefused, RSolr::Error::Http => e
-        logger.error "Error connecting to Solr #{e.message}"
+        # logger.warn msg: 'Error connecting to Solr', 'exception.message': e.message, 'exception.backtrace': e.backtrace.join("\n")
 
         # update the map of faulty hosts
-        update_faulty_host(@current_hostname)
+        if server_fault_exception?(e)
+          update_faulty_host(@current_hostname)
+        end
 
         # clean host in fault state
         clean_faulty_state
@@ -72,55 +74,104 @@ module Sunspot
         if retries < max_retries
           retries += 1
           sleep_for = 2**retries
-          logger.error "Retrying Solr connection in #{sleep_for} seconds... (#{retries} of #{max_retries})"
+          # logger.warn msg: 'Retrying Solr connection', info: { sleep_for: sleep_for, retries: retries, max_retries: max_retries }
           sleep(sleep_for)
           retry
         else
-          logger.error 'Reached max Solr connection retry count.'
+          # logger.error msg: 'Reached max Solr connection retry count', 'exception.message': e.message, 'exception.backtrace': e.backtrace.join("\n")
           raise e
         end
       end
     rescue StandardError => e
-      logger.error "Exception: #{e.inspect}"
+      # logger.error msg: 'Sunspot::FaultPolicy.with_exception_handling - generic error', 'exception.message': e.message, 'exception.backtrace': e.backtrace.join("\n")
       raise e
     end
 
     private
 
-    # Remove the host from @faulty_host cache that are too
-    def clean_faulty_state
-      @faulty_hosts = @faulty_hosts.select do |_k, v|
-        (Time.now - v[1]).to_i < 3600
+      #
+      # Return true for the exceptions that indicate that the node is down or not responding.
+      #
+      # @return [Boolean]
+      #
+      def server_fault_exception?(e)
+        e.is_a?(RSolr::Error::ConnectionRefused) ||
+          (e.is_a?(RSolr::Error::Http) && e.response[:status].to_i >= 500)
       end
-    end
 
-    #
-    # Return true if an host is in fault state
-    # An host is in fault state if and only if:
-    # - #number of fault >= 3
-    # - time in fault state is 1h
-    #
-    def faulty?(hostname)
-      @faulty_hosts.key?(hostname) &&
-        @faulty_hosts[hostname].first >= 3
-    end
+      #
+      # Return true if an host is in fault state.
+      # An host is in fault state if and only if:
+      # - #number of fault >= 3 TODO ADJUST
+      # - time in fault state is 1h
+      #
+      # @return [Boolean]
+      #
+      def faulty?(hostname)
+        faulty_host_cache_get(hostname).first >= 3
+      end
 
-    def reset_counter_faulty(hostname)
-      @faulty_hosts.delete(hostname)
-    end
+      def reset_counter_faulty(hostname)
+        faulty_host_cache_del(hostname)
+      end
 
-    def update_faulty_host(hostname)
-      @faulty_hosts ||= {}
-      @faulty_hosts[hostname] ||= [0, Time.now]
-      @faulty_hosts[hostname][0] += 1
-      @faulty_hosts[hostname][1]  = Time.now
+      def update_faulty_host(hostname)
+        cached = faulty_host_cache_set(hostname)
+        # logger.warn msg: "Updating faulty host", info: { hostname: hostname } if faulty?(hostname)
+        cached
+      end
 
-      logger.error "Putting #{hostname} in fault state" if faulty?(hostname)
-    end
+      def faulty_host_cache_get(hostname)
+        if Sunspot::Admin::Utils.redis_client
+          Sunspot::Admin::Utils.redis_client.get(hostname_key(hostname)) || [0, Time.now]
+        else
+          @faulty_hosts[hostname] || [0, Time.now]
+        end
+      end
 
-    def logger
-      @logger ||= ::Rails.logger
-      @logger ||= Logger.new(STDOUT)
-    end
+      def faulty_host_cache_set(hostname, expires_in: 1.hour.to_i)
+        if Sunspot::Admin::Utils.redis_client
+          status = faulty_host_cache_get(hostname)
+          status[0] += 1
+          status[1] = Time.now
+          Sunspot::Admin::Utils.redis_client.set(hostname_key(hostname), status, expires_in: expires_in)
+          status
+        else
+          @faulty_hosts ||= {}
+          @faulty_hosts[hostname] ||= [0, Time.now]
+          @faulty_hosts[hostname][0] += 1
+          @faulty_hosts[hostname][1] = Time.now
+          @faulty_hosts[hostname]
+        end
+      end
+
+      def faulty_host_cache_del(hostname)
+        if Sunspot::Admin::Utils.redis_client
+          Sunspot::Admin::Utils.redis_client.del(hostname_key(hostname))
+        else
+          @faulty_hosts.delete(hostname)
+        end
+      end
+
+      #
+      # Remove the host from @faulty_host cache that are too old.
+      # Does not do anything if Rails.cache is used
+      #
+      def clean_faulty_state
+        unless Sunspot::Admin::Utils.redis_client
+          @faulty_hosts.select! do |_k, v|
+            (Time.now - v[1]).to_i < 1.hour.to_i
+          end
+        end
+      end
+
+      def hostname_key(hostname)
+        "#{Digest::MD5.hexdigest(hostname)[0..9]}_CACHE_FAULTY_NODES"
+      end
+
+      def logger
+        @logger ||= ::Rails.logger if defined?(::Rails)
+        @logger ||= Logger.new(STDOUT)
+      end
   end
 end

@@ -41,8 +41,11 @@ module Sunspot
         config: Sunspot::Configuration.build,
         date_from: default_init_date,
         date_to: default_end_date,
-        fn_collection_filter: ->(collections) { collections } # predicate filter for collection
-      )
+        fn_collection_filter: ->(collections) { collections }, # predicate filter for collection
+        solr_collections: nil,
+        max_retries: nil,
+        daily: false)
+
         validate_config(config)
 
         @config = config
@@ -52,6 +55,9 @@ module Sunspot
         @host_index = 0
         @solr = Admin::Session.new(config: config)
         @fn_collection_filter = fn_collection_filter
+        @solr_collections = solr_collections
+        @max_retries = max_retries
+        @daily = daily
       end
 
       #
@@ -84,12 +90,13 @@ module Sunspot
       # and that are filtered using fn_collection_filter function
       #
       def search_collections
-        collections = @fn_collection_filter.call(
-          calculate_search_collections(
-            date_from: @date_from,
-            date_to: @date_to
+        if @solr_collections.present?
+          collections = @solr_collections
+        else
+          collections = @fn_collection_filter.call(
+            calculate_search_collections(date_from: @date_from, date_to: @date_to)
           )
-        )
+        end
         filter_with_solr_eq(collections)
       end
 
@@ -186,7 +193,7 @@ module Sunspot
       # Commit all shards. See Sunspot.commit
       #
       def commit(soft_commit = false)
-        with_exception_handling { all_sessions.each { |s| s.commit(soft_commit) }}
+        with_exception_handling { all_sessions.each { |s| s.commit(soft_commit) } }
       end
 
       #
@@ -324,102 +331,104 @@ module Sunspot
 
       private
 
-      def filter_with_solr(collections)
-        solr.collections.select do |collection|
-          collection.start_with?(*collections)
+        def filter_with_solr(collections)
+          solr.collections.select do |collection|
+            collection.start_with?(*collections)
+          end
         end
-      end
 
-      def filter_with_solr_eq(collections)
-        (collections || []) & solr.collections
-      end
-
-      def calculate_search_collections(date_from:, date_to:)
-        date_from = Time.at(date_from).utc.to_date
-        date_to = Time.at(date_to).utc.to_date
-        qc = (date_from..date_to)
-             .map { |d| collection_name(year: d.year, month: d.month) }
-             .sort
-             .uniq
-        filter_with_solr(qc)
-      end
-
-      #
-      # The collection returns the collection name for the object based on time_routed_on
-      # String:: collection name
-      #
-      def collection_for(object)
-        raise NoMethodError, "Method :time_routed_on on class #{object.class} is not defined" unless object.respond_to?(:time_routed_on)
-        raise TypeError, "Type mismatch :time_routed_on on class #{object.class} is not a Time" unless object.time_routed_on.is_a?(Time)
-        ts = object.time_routed_on.utc
-        c_postfix = object.collection_postfix if object.respond_to?(:collection_postfix)
-        collection_name(year: ts.year, month: ts.month, collection_postfix: c_postfix)
-      end
-
-      #
-      # The collection name is based on base_name, year, month
-      # String:: collection_name
-      #
-      def collection_name(year:, month:, collection_postfix: nil)
-        names = []
-        names << @config.collection['base_name']
-        names << "#{year}_#{month}"
-        names << collection_postfix if collection_postfix
-        names.join('_')
-      end
-
-      #
-      # Group the objects by which collection session they correspond to, and yield
-      # each session and is corresponding group of objects.
-      #
-      def using_collection_session(objects)
-        cache_sessions = {}
-        grouped_objects = Hash.new { |h, k| h[k] = [] }
-        objects.flatten.each do |object|
-          c_name = collection_for(object)
-          cache_sessions[c_name] = session_for_collection(c_name) unless cache_sessions.key?(c_name)
-          grouped_objects[cache_sessions[c_name]] << object
+        def filter_with_solr_eq(collections)
+          collections = (collections || [])
+          solr.collections.present? ? collections & solr.collections : collections
         end
-        grouped_objects.each_pair do |session, group|
-          yield(session, group)
+
+        def calculate_search_collections(date_from:, date_to:)
+          date_from = Time.at(date_from).utc.to_date
+          date_to = Time.at(date_to).utc.to_date
+          qc = (date_from..date_to)
+               .map { |d| collection_name(year: d.year, month: d.month, day: @daily ? d.day : nil) }
+               .sort
+               .uniq
+          filter_with_solr(qc)
         end
-      end
 
-      #
-      # Session generator
-      #
-      def gen_session(path)
-        c = Sunspot::Configuration.build
-        current_host = take_hostname
-        opts = {
-          host: current_host.first,
-          port: current_host.last,
-          path: path
-        }
+        #
+        # The collection returns the collection name for the object based on time_routed_on
+        # String:: collection name
+        #
+        def collection_for(object)
+          raise NoMethodError, "Method :time_routed_on on class #{object.class} is not defined" unless object.respond_to?(:time_routed_on)
+          raise TypeError, "Type mismatch :time_routed_on on class #{object.class} is not a Time" unless object.time_routed_on.is_a?(Time)
+          ts = object.time_routed_on.utc
+          c_postfix = object.collection_postfix if object.respond_to?(:collection_postfix)
+          collection_name(year: ts.year, month: ts.month,  day: @daily ? ts.day : nil, collection_postfix: c_postfix)
+        end
 
-        c.solr.url = URI::HTTP.build(opts).to_s
-        c.solr.read_timeout = @config.read_timeout
-        c.solr.open_timeout = @config.open_timeout
-        c.solr.proxy = @config.proxy
-        Session.new(c)
-      end
+        #
+        # The collection name is based on base_name, year, month, day (if daily)
+        # String:: collection_name
+        #
+        def collection_name(year:, month:, day: nil, collection_postfix: nil)
+          name = day.present? ? "#{year}_#{month}_#{day}" : "#{year}_#{month}"
+          names = []
+          names << @config.collection['base_name']
+          names << name
+          names << collection_postfix if collection_postfix
+          names.join('_')
+        end
 
-      def validate_config(config)
-        # don't use method_defined? for config (could be an object instance)
+        #
+        # Group the objects by which collection session they correspond to, and yield
+        # each session and is corresponding group of objects.
+        #
+        def using_collection_session(objects)
+          cache_sessions = {}
+          grouped_objects = Hash.new { |h, k| h[k] = [] }
+          objects.flatten.each do |object|
+            c_name = collection_for(object)
+            cache_sessions[c_name] = session_for_collection(c_name) unless cache_sessions.key?(c_name)
+            grouped_objects[cache_sessions[c_name]] << object
+          end
+          grouped_objects.each_pair do |session, group|
+            yield(session, group)
+          end
+        end
 
-        raise NoMethodError, 'hostname not defined for config object' unless config.methods.include?(:hostname)
-        raise NoMethodError, 'hostnames not defined for config object' unless config.methods.include?(:hostnames)
-        raise NoMethodError, 'collection not defined for config object' unless config.methods.include?(:collection)
-        raise KeyError, 'collection config_name not defined for config object' unless config.collection['config_name'] != nil
-        raise KeyError, 'collection base_name not defined for config object' unless config.collection['base_name'] != nil
-        raise KeyError, 'collection num_shards not defined for config object' unless config.collection['num_shards'] != nil
-        raise KeyError, 'collection replication_factor not defined for config object' unless config.collection['replication_factor'] != nil
-        raise KeyError, 'collection max_shards_per_node not defined for config object' unless config.collection['max_shards_per_node'] != nil
-        raise NoMethodError, 'port not defined for config object' unless config.methods.include?(:port)
-        raise NoMethodError, 'proxy not defined for config object' unless config.methods.include?(:proxy)
-        raise NoMethodError, 'open_timeout not defined for config object' unless config.methods.include?(:open_timeout)
-        raise NoMethodError, 'read_timeout not defined for config object' unless config.methods.include?(:read_timeout)
-      end
+        #
+        # Session generator
+        #
+        def gen_session(path)
+          c = Sunspot::Configuration.build
+          current_host = take_hostname
+          opts = {
+            host: current_host.first,
+            port: current_host.last,
+            path: path
+          }
+
+          c.solr.url = URI::HTTP.build(opts).to_s
+          c.solr.read_timeout = @config.read_timeout
+          c.solr.open_timeout = @config.open_timeout
+          c.solr.proxy = @config.proxy
+          Session.new(c)
+        end
+
+        def validate_config(config)
+          # don't use method_defined? for config (could be an object instance)
+
+          raise NoMethodError, 'hostname not defined for config object' unless config.methods.include?(:hostname)
+          raise NoMethodError, 'hostnames not defined for config object' unless config.methods.include?(:hostnames)
+          raise NoMethodError, 'collection not defined for config object' unless config.methods.include?(:collection)
+          raise KeyError, 'collection config_name not defined for config object' unless config.collection['config_name'] != nil
+          raise KeyError, 'collection base_name not defined for config object' unless config.collection['base_name'] != nil
+          raise KeyError, 'collection num_shards not defined for config object' unless config.collection['num_shards'] != nil
+          raise KeyError, 'collection replication_factor not defined for config object' unless config.collection['replication_factor'] != nil
+          raise KeyError, 'collection max_shards_per_node not defined for config object' unless config.collection['max_shards_per_node'] != nil
+          raise NoMethodError, 'port not defined for config object' unless config.methods.include?(:port)
+          raise NoMethodError, 'proxy not defined for config object' unless config.methods.include?(:proxy)
+          raise NoMethodError, 'open_timeout not defined for config object' unless config.methods.include?(:open_timeout)
+          raise NoMethodError, 'read_timeout not defined for config object' unless config.methods.include?(:read_timeout)
+        end
     end
   end
 end
