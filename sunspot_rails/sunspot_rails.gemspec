@@ -40,7 +40,7 @@ Gem::Specification.new do |s|
   end
 
   s.add_dependency 'sunspot', Sunspot::VERSION
-  s.add_dependency 'terminal-table', '~>1.8'
+  s.add_dependency 'terminal-table', '~>3'
 
   s.add_development_dependency 'appraisal', '2.2.0'
   s.add_development_dependency 'bundler', '>= 1.3.0', '< 2.0' if RUBY_VERSION <= '2.0.0'
