@@ -30,13 +30,13 @@ Gem::Specification.new do |s|
   s.add_dependency 'pr_geohash', '~>1.0'
   s.add_dependency 'rsolr', '>= 1.1.1', '< 3'
   s.add_dependency 'semantic', '1.6.1'
-  s.add_dependency 'terminal-table', '~>1.8'
+  s.add_dependency 'terminal-table', '~> 3'
 
   s.add_development_dependency 'appraisal', '2.2.0'
-  s.add_development_dependency 'byebug', '9.0.6'
+  s.add_development_dependency 'byebug', '11.1'
   s.add_development_dependency 'rake', '< 12.3'
   s.add_development_dependency 'rspec', '~> 3.7'
-  s.add_development_dependency 'sqlite3', '~> 1.3'
+  s.add_development_dependency 'sqlite3', '>= 1.4'
 
   s.rdoc_options << '--webcvs=http://github.com/outoftime/sunspot/tree/master/%s' <<
                   '--title' << 'Sunspot - Solr-powered search for Ruby objects - API Documentation' <<
