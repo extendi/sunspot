@@ -32,8 +32,7 @@ module Sunspot
 
         name = '%s (%.1fms)' % ["SOLR Request", event.duration]
 
-        # produces: path=select parameters={fq: ["type:Tag"], q: "rossi", fl: "* score", qf: "tag_name_text", defType: "edismax", start: 0, rows: 20}
-        path = color(event.payload[:path], BOLD, true)
+        path = color(event.payload[:path], nil, bold: true)
         parameters = event.payload[:parameters].map { |k, v|
           v = "\"#{v}\"" if v.is_a? String
           v = v.to_s.gsub(/\\/,'') # unescape
